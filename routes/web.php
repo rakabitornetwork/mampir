@@ -6,6 +6,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ScriptController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SyncController;
+use App\Http\Controllers\UpdateController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -31,4 +32,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::post('/settings/plans', [SettingsController::class, 'storePlan'])->name('settings.plans.store');
     Route::delete('/settings/plans/{plan}', [SettingsController::class, 'destroyPlan'])->name('settings.plans.destroy');
+
+    Route::get('/update', [UpdateController::class, 'index'])->name('update.index');
+    Route::post('/update/check', [UpdateController::class, 'check'])->name('update.check');
+    Route::post('/update/pull', [UpdateController::class, 'pull'])->name('update.pull');
 });

@@ -2,6 +2,7 @@ import { Link, useForm, usePage } from '@inertiajs/react';
 import {
     Activity,
     Cable,
+    CloudDownload,
     LayoutDashboard,
     LogOut,
     RefreshCw,
@@ -17,6 +18,7 @@ const nav = [
     { href: '/customers', label: 'Pelanggan', icon: Users, routeName: 'customers.index' },
     { href: '/scripts', label: 'Script Generator', icon: ScrollText, routeName: 'scripts.index' },
     { href: '/sync', label: 'Sinkron CHR', icon: RefreshCw, routeName: 'sync.index' },
+    { href: '/update', label: 'Update', icon: CloudDownload, routeName: 'update.index' },
     { href: '/settings', label: 'Pengaturan', icon: Settings2, routeName: 'settings.index' },
 ];
 
