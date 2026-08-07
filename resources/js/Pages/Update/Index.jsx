@@ -305,7 +305,9 @@ git clean -fd
 git pull --ff-only origin main
 composer install --no-dev --optimize-autoloader
 php artisan migrate --force
-php artisan optimize:clear`}
+php artisan optimize:clear
+npm ci --no-fund --no-audit || npm install --no-fund --no-audit
+npm run build`}
                                 </pre>
                             </li>
                         </ul>

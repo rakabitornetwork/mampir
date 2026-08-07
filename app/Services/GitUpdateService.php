@@ -55,6 +55,7 @@ class GitUpdateService
                     'run_composer' => (bool) config('update.run_composer'),
                     'run_migrate' => (bool) config('update.run_migrate'),
                     'run_optimize_clear' => (bool) config('update.run_optimize_clear'),
+                    'run_npm_build' => (bool) config('update.run_npm_build', true),
                     'allow_reset' => (bool) config('update.allow_reset', true),
                 ],
             ];
@@ -94,8 +95,17 @@ class GitUpdateService
             throw new RuntimeException('Gagal reset: '.$reset['error']);
         }
 
-        $clean = $this->git(['clean', '-fd']);
-        $steps[] = ['name' => 'git clean -fd', 'ok' => ! $clean['failed'], 'output' => $clean['output']];
+        $clean = $this->git([
+            'clean',
+            '-fd',
+            '-e', 'public/build',
+            '-e', 'public/build/*',
+            '-e', 'node_modules',
+            '-e', 'vendor',
+            '-e', 'storage',
+            '-e', 'bootstrap/cache',
+        ]);
+        $steps[] = ['name' => 'git clean -fd (aman)', 'ok' => ! $clean['failed'], 'output' => $clean['output']];
         if ($clean['failed']) {
             throw new RuntimeException('Gagal clean: '.$clean['error']);
         }
@@ -204,6 +214,10 @@ class GitUpdateService
 
         if ($pulled && config('update.run_composer')) {
             $steps[] = $this->runComposer();
+        }
+
+        if ($pulled && config('update.run_npm_build', true)) {
+            $steps[] = $this->runNpmBuild();
         }
 
         if ($pulled && config('update.run_migrate')) {
@@ -409,6 +423,47 @@ class GitUpdateService
             'name' => implode(' ', $args),
             'ok' => ! $result->failed(),
             'output' => $output !== '' ? $output : ($result->failed() ? 'composer gagal' : 'ok'),
+        ];
+    }
+
+    /**
+     * @return array{name:string, ok:bool, output:string}
+     */
+    protected function runNpmBuild(): array
+    {
+        $install = Process::path($this->basePath())
+            ->timeout(600)
+            ->run(['npm', 'ci', '--no-fund', '--no-audit']);
+
+        if ($install->failed()) {
+            $install = Process::path($this->basePath())
+                ->timeout(600)
+                ->run(['npm', 'install', '--no-fund', '--no-audit']);
+        }
+
+        if ($install->failed()) {
+            $output = trim($install->output()."\n".$install->errorOutput());
+
+            return [
+                'name' => 'npm ci/install',
+                'ok' => false,
+                'output' => $output !== '' ? $output : 'npm install gagal',
+            ];
+        }
+
+        $build = Process::path($this->basePath())
+            ->timeout(600)
+            ->run(['npm', 'run', 'build']);
+
+        $output = trim(
+            $install->output()."\n".$install->errorOutput()."\n".
+            $build->output()."\n".$build->errorOutput()
+        );
+
+        return [
+            'name' => 'npm run build',
+            'ok' => ! $build->failed(),
+            'output' => $output !== '' ? $output : ($build->failed() ? 'npm build gagal' : 'ok'),
         ];
     }
 

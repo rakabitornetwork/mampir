@@ -277,13 +277,14 @@ cd /var/www/mampir
 sudo -u www-data git fetch origin
 sudo -u www-data git pull --ff-only origin main
 composer install --no-dev --optimize-autoloader
+npm ci && npm run build
 php artisan migrate --force
 php artisan optimize:clear
-npm ci && npm run build
 php artisan config:cache
 php artisan route:cache
 ```
 
+Jika halaman jadi putih setelah `git clean`, biasanya folder `public/build` hilang — jalankan `npm ci && npm run build` lagi.
 ---
 
 ## Install lokal (Laragon / development)
