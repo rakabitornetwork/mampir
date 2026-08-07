@@ -27,7 +27,7 @@ return [
 
     'run_optimize_clear' => env('UPDATE_RUN_OPTIMIZE_CLEAR', true),
 
-    'run_npm_build' => env('UPDATE_RUN_NPM_BUILD', true),
+    'run_npm_build' => env('UPDATE_RUN_NPM_BUILD', false),
 
     /*
     |--------------------------------------------------------------------------

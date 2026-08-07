@@ -240,6 +240,17 @@ export default function UpdateIndex({ git }) {
                                         </strong>
                                     </span>
                                 </li>
+                                <li className="flex items-start gap-2">
+                                    <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-teal" />
+                                    <span>
+                                        npm run build di server:{' '}
+                                        <strong className="text-ink">
+                                            {git.options?.run_npm_build
+                                                ? 'aktif'
+                                                : 'nonaktif — pakai public/build dari GitHub'}
+                                        </strong>
+                                    </span>
+                                </li>
                             </ul>
                         </Panel>
                     </div>
@@ -296,18 +307,21 @@ export default function UpdateIndex({ git }) {
                                 commit. Pull biasa ditolak agar tidak menimpa tanpa sengaja.
                             </li>
                             <li>
+                                Frontend di-build di mesin development (`npm run build`), lalu folder{' '}
+                                <code className="font-mono text-ink">public/build</code> di-commit ke GitHub.
+                                VPS tidak perlu Node/npm.
+                            </li>
+                            <li>
                                 Di VPS, pakai <strong className="text-ink">Reset & Pull</strong>. Atau via SSH:
                                 <pre className="mt-2 overflow-x-auto rounded-xl bg-ink px-3 py-2 font-mono text-xs text-mist">
                                     {`cd ${git.base_path || '/home/mampir/public_html'}
 git config core.filemode false
 git reset --hard HEAD
-git clean -fd
+git clean -fd -e public/build -e vendor -e storage -e bootstrap/cache
 git pull --ff-only origin main
 composer install --no-dev --optimize-autoloader
 php artisan migrate --force
-php artisan optimize:clear
-npm ci --no-fund --no-audit || npm install --no-fund --no-audit
-npm run build`}
+php artisan optimize:clear`}
                                 </pre>
                             </li>
                         </ul>

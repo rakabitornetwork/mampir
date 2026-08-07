@@ -1,9 +1,9 @@
 # Laravel
 /vendor
 /node_modules
-/public/build
 /public/hot
 /public/storage
+# public/build DI-COMMIT agar VPS tanpa Node bisa jalan setelah git pull
 /storage/*.key
 /storage/pail
 /storage/framework/cache/data/*

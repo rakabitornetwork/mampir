@@ -53,11 +53,9 @@ sudo apt install -y php8.3-fpm php8.3-cli php8.3-mbstring php8.3-xml php8.3-curl
 # Composer
 curl -sS https://getcomposer.org/installer | php
 sudo mv composer.phar /usr/local/bin/composer
-
-# Node.js 20 (untuk npm run build)
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt install -y nodejs
 ```
+
+> **Catatan:** Node.js **tidak wajib di VPS**. Aset frontend (`public/build`) di-commit dari mesin development. Build cukup dijalankan lokal sebelum push.
 
 ### 2. Clone repository
 
@@ -88,8 +86,7 @@ php artisan key:generate
 touch database/database.sqlite
 
 composer install --no-dev --optimize-autoloader
-npm ci
-npm run build
+# Node/npm tidak diperlukan di VPS — public/build sudah ada di repository
 ```
 
 ### 4. Konfigurasi `.env`
@@ -254,37 +251,38 @@ Buka `https://mampir.contoh.com/login` dan masuk dengan akun admin.
 
 ## Update di VPS
 
+### Alur development → production
+
+1. Di lokal (Laragon): ubah kode, jalankan `npm run build`
+2. Commit **termasuk** folder `public/build`, lalu push ke `main`
+3. Di VPS: pull lewat panel **Update** (atau SSH di bawah)
+
+VPS **tidak** menjalankan `npm run build`.
+
 ### Lewat panel (disarankan)
 
-1. Push perubahan ke branch `main` di GitHub
+1. Push perubahan (termasuk `public/build`) ke branch `main`
 2. Login admin → menu **Update**
-3. Klik **Cek update**, lalu **Pull dari GitHub**
+3. Klik **Cek update**, lalu **Pull dari GitHub** (atau **Reset & Pull** jika dirty)
 
-Pull memakai fast-forward only. Working tree harus bersih. Setelah pull berhasil, aplikasi menjalankan composer install, migrate, dan optimize clear (bisa dimatikan lewat `.env`).
-
-Jika aset frontend berubah, build ulang di server:
-
-```bash
-cd /var/www/mampir
-npm ci
-npm run build
-```
+Setelah pull, aplikasi menjalankan composer install, migrate, dan optimize clear (bisa diatur lewat `.env`).
 
 ### Manual via SSH
 
 ```bash
-cd /var/www/mampir
-sudo -u www-data git fetch origin
-sudo -u www-data git pull --ff-only origin main
+cd /home/mampir/public_html   # sesuaikan path
+git config core.filemode false
+git reset --hard HEAD
+git clean -fd -e public/build -e vendor -e storage -e bootstrap/cache
+git pull --ff-only origin main
 composer install --no-dev --optimize-autoloader
-npm ci && npm run build
 php artisan migrate --force
 php artisan optimize:clear
 php artisan config:cache
 php artisan route:cache
 ```
 
-Jika halaman jadi putih setelah `git clean`, biasanya folder `public/build` hilang — jalankan `npm ci && npm run build` lagi.
+Jika halaman putih, pastikan `public/build/manifest.json` ada setelah pull (harus ikut dari GitHub).
 ---
 
 ## Install lokal (Laragon / development)
