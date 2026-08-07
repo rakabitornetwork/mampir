@@ -219,45 +219,6 @@ export default function SettingsIndex({ plans, chr }) {
 
                         <div className="border-t border-ink/8 pt-4">
                             <div className="mb-3 text-xs font-medium uppercase tracking-wider text-ink-soft/70">
-                                Jaringan tunnel
-                            </div>
-                            <div className="grid gap-3 sm:grid-cols-2">
-                                <Field label="Tunnel gateway" hint={chrForm.errors.tunnel_gateway}>
-                                    <input
-                                        className={inputClass()}
-                                        value={chrForm.data.tunnel_gateway}
-                                        onChange={(e) => chrForm.setData('tunnel_gateway', e.target.value)}
-                                    />
-                                </Field>
-                                <Field label="Tunnel network (prefix)" hint={chrForm.errors.tunnel_network}>
-                                    <input
-                                        className={inputClass()}
-                                        value={chrForm.data.tunnel_network}
-                                        onChange={(e) => chrForm.setData('tunnel_network', e.target.value)}
-                                        placeholder="192.168.172"
-                                    />
-                                </Field>
-                                <Field label="Host mulai" hint={chrForm.errors.tunnel_start_host}>
-                                    <input
-                                        type="number"
-                                        className={inputClass()}
-                                        value={chrForm.data.tunnel_start_host}
-                                        onChange={(e) => chrForm.setData('tunnel_start_host', e.target.value)}
-                                    />
-                                </Field>
-                                <Field label="Host akhir" hint={chrForm.errors.tunnel_end_host}>
-                                    <input
-                                        type="number"
-                                        className={inputClass()}
-                                        value={chrForm.data.tunnel_end_host}
-                                        onChange={(e) => chrForm.setData('tunnel_end_host', e.target.value)}
-                                    />
-                                </Field>
-                            </div>
-                        </div>
-
-                        <div className="border-t border-ink/8 pt-4">
-                            <div className="mb-3 text-xs font-medium uppercase tracking-wider text-ink-soft/70">
                                 Alokasi port block
                             </div>
                             <div className="grid gap-3 sm:grid-cols-3">
