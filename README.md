@@ -21,7 +21,7 @@ Scheduler otomatis (setiap 5 menit): `chr:sync`, `chr:expire`. Cleanup pelanggan
 |--------|-----------|
 | Backend | Laravel 13, PHP 8.3+, session auth |
 | Frontend | Inertia.js + React 19, Vite 8, Tailwind CSS 4 |
-| CHR | SSH via phpseclib |
+| CHR | RouterOS API (TCP 8728) |
 | Database default | SQLite (bisa diganti MySQL/MariaDB/PostgreSQL) |
 
 ## Persyaratan
@@ -30,7 +30,7 @@ Scheduler otomatis (setiap 5 menit): `chr:sync`, `chr:expire`. Cleanup pelanggan
 - Composer 2
 - Node.js **20+** dan npm (hanya untuk build frontend)
 - Git
-- Akses SSH ke MikroTik CHR
+- Akses jaringan ke MikroTik CHR port **8728** (API) — atau 8729 jika API-SSL
 - Web server: Nginx atau Apache
 - (Opsional) MySQL/MariaDB jika tidak memakai SQLite
 
@@ -111,9 +111,10 @@ DB_CONNECTION=sqlite
 # CHR dikonfigurasi dari panel Pengaturan (disimpan di database).
 # Env di bawah opsional — hanya seed awal jika belum ada data di DB.
 # CHR_HOST=
-# CHR_PORT=22
+# CHR_PORT=8728
 # CHR_USERNAME=
 # CHR_PASSWORD=
+# CHR_SSL=false
 # CHR_PUBLIC_IP=
 
 UPDATE_GIT_REMOTE=origin
@@ -337,7 +338,8 @@ Atau cukup virtual host Laragon + `npm run dev` bila PHP-FPM/Apache sudah melaya
 - Jangan commit file `.env`
 - Set `APP_DEBUG=false` di production
 - Ganti password admin default setelah install
-- Batasi akses SSH CHR ke IP VPS saja bila memungkinkan
+- Batasi akses API CHR (8728/8729) ke IP VPS saja bila memungkinkan
+- Di CHR aktifkan service API: `/ip service enable api`
 - Pastikan `storage/` dan `bootstrap/cache/` writable oleh PHP-FPM, tetapi source code tidak world-writable tanpa alasan
 
 ---

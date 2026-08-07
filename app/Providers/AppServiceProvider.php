@@ -24,6 +24,7 @@ class AppServiceProvider extends ServiceProvider
 
         if ($chr->canUseDatabase()) {
             $chr->seedFromConfigIfEmpty();
+            $chr->migrateSshPortToApiIfNeeded();
             $chr->applyToConfig();
         }
     }

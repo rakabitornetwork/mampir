@@ -13,9 +13,11 @@ export default function SettingsIndex({ plans, chr }) {
 
     const chrForm = useForm({
         host: chr.host || '',
-        port: chr.port || 22,
+        port: chr.port || 8728,
         username: chr.username || '',
         password: chr.password || '',
+        ssl: !!chr.ssl,
+        timeout: chr.timeout || 15,
         public_ip: chr.public_ip || '',
         tunnel_gateway: chr.tunnel_gateway || '',
         tunnel_network: chr.tunnel_network || '',
@@ -126,8 +128,9 @@ export default function SettingsIndex({ plans, chr }) {
                     }
                 >
                     <p className="mb-4 text-sm text-ink-soft/80">
-                        Disimpan di database lewat panel ini. Tidak perlu mengedit file{' '}
-                        <span className="font-mono text-ink">.env</span> untuk koneksi CHR.
+                        Koneksi memakai <strong className="text-ink">RouterOS API</strong> (port 8728),
+                        bukan SSH. Pastikan service <span className="font-mono text-ink">api</span> aktif
+                        di CHR: <span className="font-mono text-ink">/ip service enable api</span>.
                     </p>
 
                     <form
@@ -138,7 +141,7 @@ export default function SettingsIndex({ plans, chr }) {
                         }}
                     >
                         <div className="grid gap-3 sm:grid-cols-2">
-                            <Field label="Host / IP SSH" hint={chrForm.errors.host}>
+                            <Field label="Host / IP CHR" hint={chrForm.errors.host}>
                                 <input
                                     className={inputClass()}
                                     value={chrForm.data.host}
@@ -146,7 +149,7 @@ export default function SettingsIndex({ plans, chr }) {
                                     autoComplete="off"
                                 />
                             </Field>
-                            <Field label="Port SSH" hint={chrForm.errors.port}>
+                            <Field label="Port API" hint={chrForm.errors.port || 'Default RouterOS API: 8728 (API-SSL: 8729)'}>
                                 <input
                                     type="number"
                                     className={inputClass()}
@@ -193,6 +196,24 @@ export default function SettingsIndex({ plans, chr }) {
                                     value={chrForm.data.default_profile}
                                     onChange={(e) => chrForm.setData('default_profile', e.target.value)}
                                 />
+                            </Field>
+                            <Field label="Timeout (detik)" hint={chrForm.errors.timeout}>
+                                <input
+                                    type="number"
+                                    className={inputClass()}
+                                    value={chrForm.data.timeout}
+                                    onChange={(e) => chrForm.setData('timeout', e.target.value)}
+                                />
+                            </Field>
+                            <Field label="API-SSL" hint="Centang jika memakai port 8729">
+                                <label className="flex items-center gap-2 rounded-xl border border-ink/10 bg-white/80 px-3.5 py-2.5 text-sm">
+                                    <input
+                                        type="checkbox"
+                                        checked={!!chrForm.data.ssl}
+                                        onChange={(e) => chrForm.setData('ssl', e.target.checked)}
+                                    />
+                                    Gunakan SSL (api-ssl)
+                                </label>
                             </Field>
                         </div>
 

@@ -8,7 +8,7 @@ export default function SyncIndex({ logs, chrInfo, error }) {
     return (
         <AdminLayout
             title="Sinkron CHR"
-            subtitle="Tarik pelanggan aktif dari MikroTik CHR agar muncul di panel Mampir."
+            subtitle="Tarik pelanggan aktif dari MikroTik CHR (API 8728) agar muncul di panel Mampir."
         >
             <Head title="Sinkron CHR" />
 

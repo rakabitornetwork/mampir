@@ -2,72 +2,64 @@
 
 namespace App\Services\MikroTik;
 
-use phpseclib3\Net\SSH2;
 use RuntimeException;
 
 class ChrClient
 {
-    protected ?SSH2 $ssh = null;
+    protected ?RouterOsApi $api = null;
 
-    public function connect(): SSH2
+    public function connect(): RouterOsApi
     {
-        if ($this->ssh?->isConnected()) {
-            return $this->ssh;
+        if ($this->api?->isConnected()) {
+            return $this->api;
         }
 
         $host = (string) config('chr.host');
-        $port = (int) config('chr.port');
+        $port = (int) config('chr.port', 8728);
         $username = (string) config('chr.username');
         $password = (string) config('chr.password');
+        $ssl = (bool) config('chr.ssl', false);
+
+        if ($host === '' || $username === '') {
+            throw new RuntimeException('Host/username CHR belum dikonfigurasi di panel Pengaturan.');
+        }
 
         if ($password === '') {
-            throw new RuntimeException('CHR_PASSWORD belum dikonfigurasi di .env');
+            throw new RuntimeException('Password CHR belum dikonfigurasi di panel Pengaturan.');
         }
 
-        $ssh = new SSH2($host, $port, 20);
-        if (! $ssh->login($username, $password)) {
-            throw new RuntimeException("Gagal login SSH ke CHR {$host}:{$port}");
-        }
+        $api = new RouterOsApi;
+        $api->connect($host, $port, $username, $password, (int) config('chr.timeout', 15), $ssl);
+        $this->api = $api;
 
-        $this->ssh = $ssh;
-
-        return $ssh;
-    }
-
-    public function run(string $command): string
-    {
-        $ssh = $this->connect();
-        $output = $ssh->exec($command);
-
-        if ($output === false) {
-            throw new RuntimeException("Gagal menjalankan perintah CHR: {$command}");
-        }
-
-        return trim((string) $output);
+        return $api;
     }
 
     public function identity(): array
     {
-        $raw = $this->run('/system identity print');
-        preg_match('/name:\s*(.+)/', $raw, $m);
+        $rows = $this->connect()->print('/system/identity');
+        $row = $rows[0] ?? [];
 
         return [
-            'name' => trim($m[1] ?? 'Unknown'),
-            'raw' => $raw,
+            'name' => (string) ($row['name'] ?? 'Unknown'),
+            'raw' => $row,
         ];
     }
 
     public function resource(): array
     {
-        $raw = $this->run('/system resource print');
-        $data = ['raw' => $raw];
-        foreach (['version', 'uptime', 'cpu-load', 'free-memory', 'total-memory', 'board-name'] as $key) {
-            if (preg_match('/'.preg_quote($key, '/').':\s*(.+)/', $raw, $m)) {
-                $data[str_replace('-', '_', $key)] = trim($m[1]);
-            }
-        }
+        $rows = $this->connect()->print('/system/resource');
+        $row = $rows[0] ?? [];
 
-        return $data;
+        return [
+            'version' => $row['version'] ?? null,
+            'uptime' => $row['uptime'] ?? null,
+            'cpu_load' => $row['cpu-load'] ?? null,
+            'free_memory' => $row['free-memory'] ?? null,
+            'total_memory' => $row['total-memory'] ?? null,
+            'board_name' => $row['board-name'] ?? null,
+            'raw' => $row,
+        ];
     }
 
     /**
@@ -75,51 +67,28 @@ class ChrClient
      */
     public function pppSecrets(): array
     {
-        $raw = $this->run('/ppp secret print detail without-paging');
-        $blocks = preg_split('/\n\s*\n/', $raw) ?: [];
+        $rows = $this->connect()->print('/ppp/secret');
         $items = [];
 
-        foreach ($blocks as $block) {
-            if (! str_contains($block, 'name=')) {
+        foreach ($rows as $row) {
+            $name = $row['name'] ?? null;
+            if (! $name) {
                 continue;
             }
 
-            $item = [
-                'disabled' => str_contains($block, 'Flags:') && preg_match('/Flags:.*X/', $block) === 1,
+            $items[] = [
+                'id' => $row['.id'] ?? null,
+                'disabled' => $this->isYes($row['disabled'] ?? null),
+                'name' => (string) $name,
+                'service' => (string) ($row['service'] ?? 'l2tp'),
+                'profile' => $row['profile'] ?? null,
+                'local_address' => $row['local-address'] ?? null,
+                'remote_address' => $row['remote-address'] ?? null,
+                'password' => $row['password'] ?? null,
+                'caller_id' => $row['caller-id'] ?? null,
+                'last_caller_id' => $row['last-caller-id'] ?? null,
+                'last_disconnect_reason' => $row['last-disconnect-reason'] ?? null,
             ];
-
-            foreach (['name', 'service', 'profile', 'local-address', 'remote-address', 'password', 'caller-id', 'last-caller-id', 'last-disconnect-reason'] as $field) {
-                if (preg_match('/\b'.preg_quote($field, '/').'="?([^"\s]+)"?/', $block, $m)
-                    || preg_match('/\b'.preg_quote($field, '/').'=([^\s]+)/', $block, $m)) {
-                    $item[str_replace('-', '_', $field)] = trim($m[1], '"');
-                }
-            }
-
-            if (isset($item['name'])) {
-                $items[] = $item;
-            }
-        }
-
-        // Fallback terse parser if detail format differs
-        if ($items === []) {
-            $terse = $this->run('/ppp secret export terse');
-            foreach (explode("\n", $terse) as $line) {
-                if (! str_contains($line, '/ppp secret add')) {
-                    continue;
-                }
-                $item = [
-                    'disabled' => str_contains($line, 'disabled=yes'),
-                    'name' => $this->attr($line, 'name'),
-                    'service' => $this->attr($line, 'service') ?? 'l2tp',
-                    'profile' => $this->attr($line, 'profile'),
-                    'local_address' => $this->attr($line, 'local-address'),
-                    'remote_address' => $this->attr($line, 'remote-address'),
-                    'password' => $this->attr($line, 'password'),
-                ];
-                if ($item['name']) {
-                    $items[] = $item;
-                }
-            }
         }
 
         return $items;
@@ -130,24 +99,24 @@ class ChrClient
      */
     public function pppActive(): array
     {
-        $terse = $this->run('/ppp active print detail without-paging');
-        $blocks = preg_split('/\n\s*\n/', $terse) ?: [];
+        $rows = $this->connect()->print('/ppp/active');
         $items = [];
 
-        foreach ($blocks as $block) {
-            if (! str_contains($block, 'name=')) {
+        foreach ($rows as $row) {
+            $name = $row['name'] ?? null;
+            if (! $name) {
                 continue;
             }
-            $item = [];
-            foreach (['name', 'service', 'caller-id', 'address', 'uptime', 'encoding'] as $field) {
-                if (preg_match('/\b'.preg_quote($field, '/').'="([^"]+)"/', $block, $m)
-                    || preg_match('/\b'.preg_quote($field, '/').'=([^\s]+)/', $block, $m)) {
-                    $item[str_replace('-', '_', $field)] = trim($m[1], '"');
-                }
-            }
-            if (isset($item['name'])) {
-                $items[] = $item;
-            }
+
+            $items[] = [
+                'id' => $row['.id'] ?? null,
+                'name' => (string) $name,
+                'service' => $row['service'] ?? null,
+                'caller_id' => $row['caller-id'] ?? null,
+                'address' => $row['address'] ?? null,
+                'uptime' => $row['uptime'] ?? null,
+                'encoding' => $row['encoding'] ?? null,
+            ];
         }
 
         return $items;
@@ -158,25 +127,24 @@ class ChrClient
      */
     public function natRules(): array
     {
-        $terse = $this->run('/ip firewall nat export terse');
+        $rows = $this->connect()->print('/ip/firewall/nat');
         $items = [];
 
-        foreach (explode("\n", $terse) as $line) {
-            if (! str_contains($line, 'action=dst-nat')) {
+        foreach ($rows as $row) {
+            if (($row['action'] ?? '') !== 'dst-nat') {
                 continue;
             }
 
-            $dstPort = $this->attr($line, 'dst-port');
-            $toPorts = $this->attr($line, 'to-ports');
-            [$pubStart, $pubEnd] = $this->parsePortRange($dstPort);
-            [$locStart, $locEnd] = $this->parsePortRange($toPorts);
+            [$pubStart, $pubEnd] = $this->parsePortRange($row['dst-port'] ?? null);
+            [$locStart, $locEnd] = $this->parsePortRange($row['to-ports'] ?? null);
 
             $items[] = [
-                'disabled' => str_contains($line, 'disabled=yes'),
-                'comment' => $this->attr($line, 'comment') ?? '',
-                'protocol' => $this->attr($line, 'protocol') ?? 'tcp',
-                'dst_address' => $this->attr($line, 'dst-address'),
-                'to_addresses' => $this->attr($line, 'to-addresses'),
+                'id' => $row['.id'] ?? null,
+                'disabled' => $this->isYes($row['disabled'] ?? null),
+                'comment' => (string) ($row['comment'] ?? ''),
+                'protocol' => (string) ($row['protocol'] ?? 'tcp'),
+                'dst_address' => $row['dst-address'] ?? null,
+                'to_addresses' => $row['to-addresses'] ?? null,
                 'public_port' => $pubStart,
                 'public_port_end' => $pubEnd,
                 'local_port' => $locStart,
@@ -189,56 +157,79 @@ class ChrClient
 
     public function ensurePppSecret(array $data): void
     {
-        $name = $data['name'];
-        $this->run(':do { /ppp secret remove [find name="'.$this->esc($name).'"] } on-error={}');
+        $api = $this->connect();
+        $name = (string) $data['name'];
 
-        $cmd = sprintf(
-            '/ppp secret add name="%s" password="%s" service=%s profile="%s" local-address=%s remote-address=%s',
-            $this->esc($name),
-            $this->esc($data['password']),
-            $data['service'] ?? 'l2tp',
-            $this->esc($data['profile'] ?? config('chr.default_profile')),
-            $data['local_address'] ?? config('chr.tunnel_gateway'),
-            $data['remote_address']
-        );
-
-        if (! empty($data['disabled'])) {
-            $cmd .= ' disabled=yes';
+        foreach ($this->findIds('/ppp/secret', 'name', $name) as $id) {
+            $this->assertOk($api->command('/ppp/secret/remove', ['.id' => $id]));
         }
 
-        $this->run($cmd);
+        $attrs = [
+            'name' => $name,
+            'password' => (string) $data['password'],
+            'service' => (string) ($data['service'] ?? 'l2tp'),
+            'profile' => (string) ($data['profile'] ?? config('chr.default_profile')),
+            'local-address' => (string) ($data['local_address'] ?? config('chr.tunnel_gateway')),
+            'remote-address' => (string) $data['remote_address'],
+            'disabled' => ! empty($data['disabled']) ? 'yes' : 'no',
+        ];
+
+        $this->assertOk($api->command('/ppp/secret/add', $attrs));
     }
 
     public function setPppSecretDisabled(string $name, bool $disabled): void
     {
-        $value = $disabled ? 'yes' : 'no';
-        $this->run('/ppp secret set [find name="'.$this->esc($name).'"] disabled='.$value);
+        $api = $this->connect();
+        $ids = $this->findIds('/ppp/secret', 'name', $name);
+        if ($ids === []) {
+            return;
+        }
+
+        foreach ($ids as $id) {
+            $this->assertOk($api->command('/ppp/secret/set', [
+                '.id' => $id,
+                'disabled' => $disabled ? 'yes' : 'no',
+            ]));
+        }
     }
 
     public function disconnectPppActive(string $name): void
     {
-        $this->run(':do { /ppp active remove [find name="'.$this->esc($name).'"] } on-error={}');
+        $api = $this->connect();
+        foreach ($this->findIds('/ppp/active', 'name', $name) as $id) {
+            $this->assertOk($api->command('/ppp/active/remove', ['.id' => $id]));
+        }
     }
 
     public function removePppSecret(string $name): void
     {
-        $this->run(':do { /ppp active remove [find name="'.$this->esc($name).'"] } on-error={}');
-        $this->run(':do { /ppp secret remove [find name="'.$this->esc($name).'"] } on-error={}');
+        $this->disconnectPppActive($name);
+
+        $api = $this->connect();
+        foreach ($this->findIds('/ppp/secret', 'name', $name) as $id) {
+            $this->assertOk($api->command('/ppp/secret/remove', ['.id' => $id]));
+        }
     }
 
     public function removeNatByComment(string $comment): void
     {
-        $this->run(':do { /ip firewall nat remove [find comment="'.$this->esc($comment).'"] } on-error={}');
+        $api = $this->connect();
+        foreach ($this->findIds('/ip/firewall/nat', 'comment', $comment) as $id) {
+            $this->assertOk($api->command('/ip/firewall/nat/remove', ['.id' => $id]));
+        }
     }
 
     public function removeNatByToAddresses(string $toAddress): void
     {
-        $this->run(':do { /ip firewall nat remove [find to-addresses="'.$this->esc($toAddress).'"] } on-error={}');
+        $api = $this->connect();
+        foreach ($this->findIds('/ip/firewall/nat', 'to-addresses', $toAddress) as $id) {
+            $this->assertOk($api->command('/ip/firewall/nat/remove', ['.id' => $id]));
+        }
     }
 
     public function addDstNat(array $rule): void
     {
-        $comment = $rule['comment'];
+        $comment = (string) $rule['comment'];
         $this->removeNatByComment($comment);
 
         $dstPort = isset($rule['public_port_end']) && $rule['public_port_end'] !== $rule['public_port']
@@ -249,41 +240,67 @@ class ChrClient
             ? $rule['local_port'].'-'.$rule['local_port_end']
             : (string) $rule['local_port'];
 
-        $cmd = sprintf(
-            '/ip firewall nat add chain=dstnat action=dst-nat protocol=%s dst-address=%s dst-port=%s to-addresses=%s to-ports=%s comment="%s"',
-            $rule['protocol'] ?? 'tcp',
-            $rule['dst_address'] ?? config('chr.public_ip'),
-            $dstPort,
-            $rule['to_addresses'],
-            $toPorts,
-            $this->esc($comment)
-        );
+        $attrs = [
+            'chain' => 'dstnat',
+            'action' => 'dst-nat',
+            'protocol' => (string) ($rule['protocol'] ?? 'tcp'),
+            'dst-address' => (string) ($rule['dst_address'] ?? config('chr.public_ip')),
+            'dst-port' => $dstPort,
+            'to-addresses' => (string) $rule['to_addresses'],
+            'to-ports' => $toPorts,
+            'comment' => $comment,
+            'disabled' => ! empty($rule['disabled']) ? 'yes' : 'no',
+        ];
 
-        if (! empty($rule['disabled'])) {
-            $cmd .= ' disabled=yes';
-        }
-
-        $this->run($cmd);
+        $this->assertOk($this->connect()->command('/ip/firewall/nat/add', $attrs));
     }
 
     public function disconnect(): void
     {
-        if ($this->ssh) {
-            $this->ssh->disconnect();
-            $this->ssh = null;
+        $this->api?->disconnect();
+        $this->api = null;
+    }
+
+    /**
+     * @return list<string>
+     */
+    protected function findIds(string $path, string $field, string $value): array
+    {
+        $rows = $this->connect()->print($path, ['?'.$field.'='.$value]);
+        $ids = [];
+
+        foreach ($rows as $row) {
+            if (! empty($row['.id'])) {
+                $ids[] = (string) $row['.id'];
+            }
+        }
+
+        // Fallback tanpa query filter (beberapa ROS lebih rewel)
+        if ($ids === []) {
+            foreach ($this->connect()->print($path) as $row) {
+                if (($row[$field] ?? null) === $value && ! empty($row['.id'])) {
+                    $ids[] = (string) $row['.id'];
+                }
+            }
+        }
+
+        return $ids;
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $reply
+     */
+    protected function assertOk(array $reply): void
+    {
+        $api = $this->api;
+        if ($api && $api->hasTrap($reply)) {
+            throw new RuntimeException('Perintah API CHR gagal: '.$api->trapMessage($reply));
         }
     }
 
-    protected function attr(string $line, string $key): ?string
+    protected function isYes(mixed $value): bool
     {
-        if (preg_match('/\b'.preg_quote($key, '/').'="([^"]*)"/', $line, $m)) {
-            return $m[1];
-        }
-        if (preg_match('/\b'.preg_quote($key, '/').'=([^\s]+)/', $line, $m)) {
-            return $m[1];
-        }
-
-        return null;
+        return in_array(strtolower((string) $value), ['yes', 'true', '1'], true);
     }
 
     /**
@@ -301,10 +318,5 @@ class ChrClient
         }
 
         return [(int) $value, (int) $value];
-    }
-
-    protected function esc(string $value): string
-    {
-        return str_replace(['\\', '"'], ['\\\\', '\\"'], $value);
     }
 }

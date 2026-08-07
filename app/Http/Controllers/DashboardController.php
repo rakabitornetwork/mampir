@@ -91,6 +91,7 @@ class DashboardController extends Controller
             'chr' => [
                 'public_ip' => config('chr.public_ip'),
                 'host' => config('chr.host'),
+                'port' => (int) config('chr.port', 8728),
             ],
         ]);
     }

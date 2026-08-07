@@ -13,9 +13,11 @@
 
 return [
     'host' => env('CHR_HOST', ''),
-    'port' => (int) env('CHR_PORT', 22),
+    'port' => (int) env('CHR_PORT', 8728),
     'username' => env('CHR_USERNAME', ''),
     'password' => env('CHR_PASSWORD', ''),
+    'ssl' => (bool) env('CHR_SSL', false),
+    'timeout' => (int) env('CHR_TIMEOUT', 15),
     'public_ip' => env('CHR_PUBLIC_IP', ''),
     'tunnel_gateway' => env('CHR_TUNNEL_GATEWAY', '192.168.172.254'),
     'tunnel_network' => env('CHR_TUNNEL_NETWORK', '192.168.172'),

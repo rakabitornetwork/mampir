@@ -93,7 +93,7 @@
     ]
   },
   "resources/js/Pages/Dashboard.jsx": {
-    "file": "assets/Dashboard-CK6EYayP.js",
+    "file": "assets/Dashboard-CzIZgGES.js",
     "name": "Dashboard",
     "src": "resources/js/Pages/Dashboard.jsx",
     "isDynamicEntry": true,
@@ -118,7 +118,7 @@
     ]
   },
   "resources/js/Pages/Settings/Index.jsx": {
-    "file": "assets/Index-DJSfdbPE.js",
+    "file": "assets/Index-q_KkOsj-.js",
     "name": "Index",
     "src": "resources/js/Pages/Settings/Index.jsx",
     "isDynamicEntry": true,
@@ -129,7 +129,7 @@
     ]
   },
   "resources/js/Pages/Sync/Index.jsx": {
-    "file": "assets/Index-C5uh-PiY.js",
+    "file": "assets/Index-JPqTmey9.js",
     "name": "Index",
     "src": "resources/js/Pages/Sync/Index.jsx",
     "isDynamicEntry": true,
@@ -154,7 +154,7 @@
     ]
   },
   "resources/js/app.jsx": {
-    "file": "assets/app--SssgNTu.js",
+    "file": "assets/app-BDJH1VGc.js",
     "name": "app",
     "src": "resources/js/app.jsx",
     "isEntry": true,

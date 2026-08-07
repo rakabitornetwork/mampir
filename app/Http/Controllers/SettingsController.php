@@ -27,6 +27,8 @@ class SettingsController extends Controller
             'port' => ['required', 'integer', 'min:1', 'max:65535'],
             'username' => ['required', 'string', 'max:120'],
             'password' => ['nullable', 'string', 'max:255'],
+            'ssl' => ['sometimes', 'boolean'],
+            'timeout' => ['nullable', 'integer', 'min:3', 'max:120'],
             'public_ip' => ['required', 'string', 'max:64'],
             'tunnel_gateway' => ['required', 'string', 'max:64'],
             'tunnel_network' => ['required', 'string', 'max:64'],

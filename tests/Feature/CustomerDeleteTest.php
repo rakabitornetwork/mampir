@@ -15,7 +15,7 @@ class CustomerDeleteTest extends TestCase
 
     public function test_purge_expired_customers_removes_old_expired_customers(): void
     {
-        // Mock CHR Client to prevent real SSH connections during tests
+        // Mock CHR Client to prevent real API connections during tests
         $mockClient = $this->createMock(ChrClient::class);
         $mockClient->expects($this->any())->method('removePppSecret');
         $mockClient->expects($this->any())->method('removeNatByToAddresses');

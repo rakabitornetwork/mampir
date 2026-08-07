@@ -40,7 +40,9 @@ class ChrSettingsService
             $merged['service_templates'] = $defaults['service_templates'] ?? [];
         }
 
-        $merged['port'] = (int) ($merged['port'] ?? 22);
+        $merged['port'] = (int) ($merged['port'] ?? 8728);
+        $merged['ssl'] = (bool) ($merged['ssl'] ?? false);
+        $merged['timeout'] = (int) ($merged['timeout'] ?? 15);
         $merged['tunnel_start_host'] = (int) ($merged['tunnel_start_host'] ?? 2);
         $merged['tunnel_end_host'] = (int) ($merged['tunnel_end_host'] ?? 250);
         $merged['port_block_start'] = (int) ($merged['port_block_start'] ?? 1100);
@@ -61,10 +63,12 @@ class ChrSettingsService
 
         return [
             'host' => (string) ($chr['host'] ?? ''),
-            'port' => (int) ($chr['port'] ?? 22),
+            'port' => (int) ($chr['port'] ?? 8728),
             'username' => (string) ($chr['username'] ?? ''),
             'password' => '',
             'has_password' => filled($chr['password'] ?? null),
+            'ssl' => (bool) ($chr['ssl'] ?? false),
+            'timeout' => (int) ($chr['timeout'] ?? 15),
             'public_ip' => (string) ($chr['public_ip'] ?? ''),
             'tunnel_gateway' => (string) ($chr['tunnel_gateway'] ?? ''),
             'tunnel_network' => (string) ($chr['tunnel_network'] ?? ''),
@@ -99,9 +103,11 @@ class ChrSettingsService
 
         $payload = [
             'host' => trim((string) ($input['host'] ?? $current['host'] ?? '')),
-            'port' => (int) ($input['port'] ?? $current['port'] ?? 22),
+            'port' => (int) ($input['port'] ?? $current['port'] ?? 8728),
             'username' => trim((string) ($input['username'] ?? $current['username'] ?? '')),
             'password' => $password,
+            'ssl' => (bool) ($input['ssl'] ?? $current['ssl'] ?? false),
+            'timeout' => (int) ($input['timeout'] ?? $current['timeout'] ?? 15),
             'public_ip' => trim((string) ($input['public_ip'] ?? $current['public_ip'] ?? '')),
             'tunnel_gateway' => trim((string) ($input['tunnel_gateway'] ?? $current['tunnel_gateway'] ?? '')),
             'tunnel_network' => rtrim(trim((string) ($input['tunnel_network'] ?? $current['tunnel_network'] ?? '')), '.'),
@@ -137,9 +143,11 @@ class ChrSettingsService
         $defaults = $this->fileDefaults();
         AppSetting::setValue(self::STORAGE_KEY, json_encode([
             'host' => $defaults['host'] ?? '',
-            'port' => (int) ($defaults['port'] ?? 22),
+            'port' => (int) ($defaults['port'] ?? 8728),
             'username' => $defaults['username'] ?? '',
             'password' => $defaults['password'] ?? '',
+            'ssl' => (bool) ($defaults['ssl'] ?? false),
+            'timeout' => (int) ($defaults['timeout'] ?? 15),
             'public_ip' => $defaults['public_ip'] ?? '',
             'tunnel_gateway' => $defaults['tunnel_gateway'] ?? '',
             'tunnel_network' => $defaults['tunnel_network'] ?? '',
@@ -151,6 +159,26 @@ class ChrSettingsService
             'port_block_step' => (int) ($defaults['port_block_step'] ?? 300),
             'service_templates' => $defaults['service_templates'] ?? [],
         ], JSON_UNESCAPED_UNICODE));
+    }
+
+    /**
+     * Migrasi otomatis: port SSH lama (22) → API RouterOS (8728).
+     */
+    public function migrateSshPortToApiIfNeeded(): void
+    {
+        $stored = $this->stored();
+        if ($stored === []) {
+            return;
+        }
+
+        if ((int) ($stored['port'] ?? 0) !== 22) {
+            return;
+        }
+
+        $stored['port'] = 8728;
+        $stored['ssl'] = (bool) ($stored['ssl'] ?? false);
+        $stored['timeout'] = (int) ($stored['timeout'] ?? 15);
+        AppSetting::setValue(self::STORAGE_KEY, json_encode($stored, JSON_UNESCAPED_UNICODE));
     }
 
     public function canUseDatabase(): bool

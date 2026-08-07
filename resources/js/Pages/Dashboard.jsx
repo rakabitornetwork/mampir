@@ -84,7 +84,8 @@ export default function Dashboard({
                                 <span className="font-mono">{chr.public_ip}</span>
                             </div>
                             <div className="rounded-xl bg-ink/[0.03] px-3 py-2 text-ink-soft">
-                                Host SSH: <span className="font-mono text-ink">{chr.host}</span>
+                                Host API: <span className="font-mono text-ink">{chr.host}</span>
+                                    {chr.port ? `:${chr.port}` : ''}
                             </div>
                             {lastSync ? (
                                 <div className="text-xs text-ink-soft/70">
