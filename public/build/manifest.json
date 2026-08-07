@@ -1,0 +1,167 @@
+{
+  "_AdminLayout--ulKYsPm.js": {
+    "file": "assets/AdminLayout--ulKYsPm.js",
+    "name": "AdminLayout",
+    "imports": [
+      "_vendor-4bBBKpq2.js",
+      "_icons-BPngPFoV.js",
+      "_UI-CDB3hOM_.js"
+    ]
+  },
+  "_UI-CDB3hOM_.js": {
+    "file": "assets/UI-CDB3hOM_.js",
+    "name": "UI",
+    "imports": [
+      "_vendor-4bBBKpq2.js"
+    ]
+  },
+  "_icons-BPngPFoV.js": {
+    "file": "assets/icons-BPngPFoV.js",
+    "name": "icons",
+    "imports": [
+      "_rolldown-runtime-CbXtAM7H.js"
+    ]
+  },
+  "_rolldown-runtime-CbXtAM7H.js": {
+    "file": "assets/rolldown-runtime-CbXtAM7H.js",
+    "name": "rolldown-runtime"
+  },
+  "_vendor-4bBBKpq2.js": {
+    "file": "assets/vendor-4bBBKpq2.js",
+    "name": "vendor",
+    "imports": [
+      "_rolldown-runtime-CbXtAM7H.js",
+      "_icons-BPngPFoV.js"
+    ]
+  },
+  "resources/css/app.css": {
+    "file": "assets/app-BOYzp5M9.css",
+    "name": "app",
+    "names": [
+      "app.css"
+    ],
+    "src": "resources/css/app.css",
+    "isEntry": true
+  },
+  "resources/js/Pages/Auth/Login.jsx": {
+    "file": "assets/Login-CAF1wwdj.js",
+    "name": "Login",
+    "src": "resources/js/Pages/Auth/Login.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_vendor-4bBBKpq2.js",
+      "_icons-BPngPFoV.js",
+      "_UI-CDB3hOM_.js"
+    ]
+  },
+  "resources/js/Pages/Customers/Form.jsx": {
+    "file": "assets/Form-CW3_7KgJ.js",
+    "name": "Form",
+    "src": "resources/js/Pages/Customers/Form.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_vendor-4bBBKpq2.js",
+      "_icons-BPngPFoV.js",
+      "_UI-CDB3hOM_.js",
+      "_AdminLayout--ulKYsPm.js"
+    ]
+  },
+  "resources/js/Pages/Customers/Index.jsx": {
+    "file": "assets/Index-CUqTr3Jf.js",
+    "name": "Index",
+    "src": "resources/js/Pages/Customers/Index.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_rolldown-runtime-CbXtAM7H.js",
+      "_vendor-4bBBKpq2.js",
+      "_icons-BPngPFoV.js",
+      "_UI-CDB3hOM_.js",
+      "_AdminLayout--ulKYsPm.js"
+    ]
+  },
+  "resources/js/Pages/Customers/Show.jsx": {
+    "file": "assets/Show-Cj5FDivt.js",
+    "name": "Show",
+    "src": "resources/js/Pages/Customers/Show.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_rolldown-runtime-CbXtAM7H.js",
+      "_vendor-4bBBKpq2.js",
+      "_icons-BPngPFoV.js",
+      "_UI-CDB3hOM_.js",
+      "_AdminLayout--ulKYsPm.js"
+    ]
+  },
+  "resources/js/Pages/Dashboard.jsx": {
+    "file": "assets/Dashboard-D1RnalSO.js",
+    "name": "Dashboard",
+    "src": "resources/js/Pages/Dashboard.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_vendor-4bBBKpq2.js",
+      "_icons-BPngPFoV.js",
+      "_UI-CDB3hOM_.js",
+      "_AdminLayout--ulKYsPm.js"
+    ]
+  },
+  "resources/js/Pages/Scripts/Index.jsx": {
+    "file": "assets/Index-ibma0yn_.js",
+    "name": "Index",
+    "src": "resources/js/Pages/Scripts/Index.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_rolldown-runtime-CbXtAM7H.js",
+      "_vendor-4bBBKpq2.js",
+      "_icons-BPngPFoV.js",
+      "_UI-CDB3hOM_.js",
+      "_AdminLayout--ulKYsPm.js"
+    ]
+  },
+  "resources/js/Pages/Settings/Index.jsx": {
+    "file": "assets/Index-BO4881td.js",
+    "name": "Index",
+    "src": "resources/js/Pages/Settings/Index.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_vendor-4bBBKpq2.js",
+      "_UI-CDB3hOM_.js",
+      "_AdminLayout--ulKYsPm.js"
+    ]
+  },
+  "resources/js/Pages/Sync/Index.jsx": {
+    "file": "assets/Index-BYrK98Gx.js",
+    "name": "Index",
+    "src": "resources/js/Pages/Sync/Index.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_vendor-4bBBKpq2.js",
+      "_icons-BPngPFoV.js",
+      "_UI-CDB3hOM_.js",
+      "_AdminLayout--ulKYsPm.js"
+    ]
+  },
+  "resources/js/app.jsx": {
+    "file": "assets/app-PF6wPyjW.js",
+    "name": "app",
+    "src": "resources/js/app.jsx",
+    "isEntry": true,
+    "imports": [
+      "_rolldown-runtime-CbXtAM7H.js",
+      "_vendor-4bBBKpq2.js",
+      "_icons-BPngPFoV.js"
+    ],
+    "dynamicImports": [
+      "resources/js/Pages/Auth/Login.jsx",
+      "resources/js/Pages/Customers/Form.jsx",
+      "resources/js/Pages/Customers/Index.jsx",
+      "resources/js/Pages/Customers/Show.jsx",
+      "resources/js/Pages/Dashboard.jsx",
+      "resources/js/Pages/Scripts/Index.jsx",
+      "resources/js/Pages/Settings/Index.jsx",
+      "resources/js/Pages/Sync/Index.jsx"
+    ],
+    "css": [
+      "assets/app-BOYzp5M9.css"
+    ]
+  }
+}
