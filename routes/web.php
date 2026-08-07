@@ -30,6 +30,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/sync/expire', [SyncController::class, 'expire'])->name('sync.expire');
 
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
+    Route::put('/settings/chr', [SettingsController::class, 'updateChr'])->name('settings.chr.update');
     Route::post('/settings/plans', [SettingsController::class, 'storePlan'])->name('settings.plans.store');
     Route::delete('/settings/plans/{plan}', [SettingsController::class, 'destroyPlan'])->name('settings.plans.destroy');
 

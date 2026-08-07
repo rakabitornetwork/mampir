@@ -111,13 +111,13 @@ DB_CONNECTION=sqlite
 # DB_USERNAME=mampir
 # DB_PASSWORD=rahasia
 
-CHR_HOST=IP_ATAU_HOST_CHR
-CHR_PORT=22
-CHR_USERNAME=user_ssh_chr
-CHR_PASSWORD=password_ssh_chr
-CHR_PUBLIC_IP=IP_PUBLIC_CHR
-CHR_TUNNEL_GATEWAY=192.168.172.254
-CHR_TUNNEL_NETWORK=192.168.172
+# CHR dikonfigurasi dari panel Pengaturan (disimpan di database).
+# Env di bawah opsional — hanya seed awal jika belum ada data di DB.
+# CHR_HOST=
+# CHR_PORT=22
+# CHR_USERNAME=
+# CHR_PASSWORD=
+# CHR_PUBLIC_IP=
 
 UPDATE_GIT_REMOTE=origin
 UPDATE_GIT_BRANCH=main
@@ -126,6 +126,7 @@ UPDATE_RUN_MIGRATE=true
 UPDATE_RUN_OPTIMIZE_CLEAR=true
 ```
 
+Setelah login, buka **Pengaturan** dan isi Host/Username/Password/Public IP CHR, lalu simpan.
 ### 5. Migrasi & admin user
 
 ```bash

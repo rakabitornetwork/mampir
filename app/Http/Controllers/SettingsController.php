@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\SubscriptionPlan;
+use App\Services\ChrSettingsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -11,23 +12,46 @@ use Inertia\Response;
 
 class SettingsController extends Controller
 {
-    public function index(): Response
+    public function index(ChrSettingsService $chrSettings): Response
     {
         return Inertia::render('Settings/Index', [
             'plans' => SubscriptionPlan::query()->orderBy('sort_order')->get(),
-            'chr' => [
-                'host' => config('chr.host'),
-                'port' => config('chr.port'),
-                'username' => config('chr.username'),
-                'public_ip' => config('chr.public_ip'),
-                'tunnel_gateway' => config('chr.tunnel_gateway'),
-                'tunnel_network' => config('chr.tunnel_network'),
-                'port_block_start' => config('chr.port_block_start'),
-                'port_block_end' => config('chr.port_block_end'),
-                'port_block_step' => config('chr.port_block_step'),
-                'service_templates' => config('chr.service_templates'),
-            ],
+            'chr' => $chrSettings->forPanel(),
         ]);
+    }
+
+    public function updateChr(Request $request, ChrSettingsService $chrSettings): RedirectResponse
+    {
+        $data = $request->validate([
+            'host' => ['required', 'string', 'max:255'],
+            'port' => ['required', 'integer', 'min:1', 'max:65535'],
+            'username' => ['required', 'string', 'max:120'],
+            'password' => ['nullable', 'string', 'max:255'],
+            'public_ip' => ['required', 'string', 'max:64'],
+            'tunnel_gateway' => ['required', 'string', 'max:64'],
+            'tunnel_network' => ['required', 'string', 'max:64'],
+            'tunnel_start_host' => ['required', 'integer', 'min:1', 'max:254'],
+            'tunnel_end_host' => ['required', 'integer', 'min:1', 'max:254', 'gte:tunnel_start_host'],
+            'default_profile' => ['required', 'string', 'max:120'],
+            'port_block_start' => ['required', 'integer', 'min:1', 'max:65535'],
+            'port_block_end' => ['required', 'integer', 'min:1', 'max:65535', 'gte:port_block_start'],
+            'port_block_step' => ['required', 'integer', 'min:1', 'max:10000'],
+            'service_templates' => ['required', 'array', 'min:1'],
+            'service_templates.*.label' => ['required', 'string', 'max:80'],
+            'service_templates.*.local_port' => ['required', 'integer', 'min:1', 'max:65535'],
+            'service_templates.*.offset' => ['required', 'integer', 'min:0', 'max:65535'],
+            'service_templates.*.icon' => ['nullable', 'string', 'max:40'],
+        ]);
+
+        foreach (array_keys($data['service_templates']) as $key) {
+            if (! is_string($key) || ! preg_match('/^[a-z0-9_\-]+$/', $key)) {
+                return back()->with('error', "Key template layanan tidak valid: {$key}");
+            }
+        }
+
+        $chrSettings->update($data);
+
+        return back()->with('success', 'Pengaturan CHR disimpan. Perubahan langsung dipakai tanpa edit .env.');
     }
 
     public function storePlan(Request $request): RedirectResponse

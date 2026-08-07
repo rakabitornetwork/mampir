@@ -1,11 +1,22 @@
 <?php
 
+/*
+|--------------------------------------------------------------------------
+| Default CHR (fallback)
+|--------------------------------------------------------------------------
+|
+| Nilai aktif diambil dari database (panel Pengaturan) lewat ChrSettingsService.
+| Entri di bawah hanya dipakai sebagai default awal / jika belum ada data di DB.
+| Env CHR_* bersifat opsional untuk seed pertama kali.
+|
+*/
+
 return [
-    'host' => env('CHR_HOST', '31.57.178.91'),
+    'host' => env('CHR_HOST', ''),
     'port' => (int) env('CHR_PORT', 22),
-    'username' => env('CHR_USERNAME', 'ai'),
+    'username' => env('CHR_USERNAME', ''),
     'password' => env('CHR_PASSWORD', ''),
-    'public_ip' => env('CHR_PUBLIC_IP', '31.57.178.91'),
+    'public_ip' => env('CHR_PUBLIC_IP', ''),
     'tunnel_gateway' => env('CHR_TUNNEL_GATEWAY', '192.168.172.254'),
     'tunnel_network' => env('CHR_TUNNEL_NETWORK', '192.168.172'),
     'tunnel_start_host' => (int) env('CHR_TUNNEL_START_HOST', 2),
@@ -18,7 +29,6 @@ return [
     /*
     |--------------------------------------------------------------------------
     | Standard port forward templates (offsets from port block base)
-    | Pattern observed on CHR Teslatech | Perwiracloud
     |--------------------------------------------------------------------------
     */
     'service_templates' => [
