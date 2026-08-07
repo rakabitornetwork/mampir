@@ -1,9 +1,13 @@
 import { Head, router, useForm } from '@inertiajs/react';
+import { useState } from 'react';
+import { PlugZap } from 'lucide-react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Badge, Button, Field, Panel, inputClass } from '@/Components/UI';
 import { formatIDR } from '@/lib/utils';
 
 export default function SettingsIndex({ plans, chr }) {
+    const [testing, setTesting] = useState(false);
+
     const planForm = useForm({
         name: '',
         duration_days: 30,
@@ -30,16 +34,23 @@ export default function SettingsIndex({ plans, chr }) {
         service_templates: chr.service_templates || {},
     });
 
-    const templateEntries = Object.entries(chrForm.data.service_templates || {});
-
-    const setTemplateField = (key, field, value) => {
-        chrForm.setData('service_templates', {
-            ...chrForm.data.service_templates,
-            [key]: {
-                ...chrForm.data.service_templates[key],
-                [field]: value,
+    const testConnection = () => {
+        router.post(
+            '/settings/chr/test',
+            {
+                host: chrForm.data.host,
+                port: chrForm.data.port,
+                username: chrForm.data.username,
+                password: chrForm.data.password,
+                ssl: !!chrForm.data.ssl,
+                timeout: chrForm.data.timeout,
             },
-        });
+            {
+                preserveScroll: true,
+                onStart: () => setTesting(true),
+                onFinish: () => setTesting(false),
+            }
+        );
     };
 
     return (
@@ -217,86 +228,18 @@ export default function SettingsIndex({ plans, chr }) {
                             </Field>
                         </div>
 
-                        <div className="border-t border-ink/8 pt-4">
-                            <div className="mb-3 text-xs font-medium uppercase tracking-wider text-ink-soft/70">
-                                Alokasi port block
-                            </div>
-                            <div className="grid gap-3 sm:grid-cols-3">
-                                <Field label="Start" hint={chrForm.errors.port_block_start}>
-                                    <input
-                                        type="number"
-                                        className={inputClass()}
-                                        value={chrForm.data.port_block_start}
-                                        onChange={(e) => chrForm.setData('port_block_start', e.target.value)}
-                                    />
-                                </Field>
-                                <Field label="End" hint={chrForm.errors.port_block_end}>
-                                    <input
-                                        type="number"
-                                        className={inputClass()}
-                                        value={chrForm.data.port_block_end}
-                                        onChange={(e) => chrForm.setData('port_block_end', e.target.value)}
-                                    />
-                                </Field>
-                                <Field label="Step" hint={chrForm.errors.port_block_step}>
-                                    <input
-                                        type="number"
-                                        className={inputClass()}
-                                        value={chrForm.data.port_block_step}
-                                        onChange={(e) => chrForm.setData('port_block_step', e.target.value)}
-                                    />
-                                </Field>
-                            </div>
-                        </div>
-
-                        <div className="border-t border-ink/8 pt-4">
-                            <div className="mb-3 text-xs font-medium uppercase tracking-wider text-ink-soft/70">
-                                Pola layanan standar
-                            </div>
-                            <div className="space-y-3">
-                                {templateEntries.map(([key, tpl]) => (
-                                    <div
-                                        key={key}
-                                        className="rounded-xl border border-ink/8 bg-white/60 p-3"
-                                    >
-                                        <div className="mb-2 font-mono text-xs uppercase tracking-wide text-teal">
-                                            {key}
-                                        </div>
-                                        <div className="grid gap-2 sm:grid-cols-3">
-                                            <Field label="Label">
-                                                <input
-                                                    className={inputClass()}
-                                                    value={tpl.label || ''}
-                                                    onChange={(e) => setTemplateField(key, 'label', e.target.value)}
-                                                />
-                                            </Field>
-                                            <Field label="Local port">
-                                                <input
-                                                    type="number"
-                                                    className={inputClass()}
-                                                    value={tpl.local_port ?? ''}
-                                                    onChange={(e) =>
-                                                        setTemplateField(key, 'local_port', e.target.value)
-                                                    }
-                                                />
-                                            </Field>
-                                            <Field label="Offset">
-                                                <input
-                                                    type="number"
-                                                    className={inputClass()}
-                                                    value={tpl.offset ?? ''}
-                                                    onChange={(e) => setTemplateField(key, 'offset', e.target.value)}
-                                                />
-                                            </Field>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
                         <div className="flex flex-wrap items-center gap-3 pt-2">
-                            <Button type="submit" variant="teal" disabled={chrForm.processing}>
+                            <Button type="submit" variant="teal" disabled={chrForm.processing || testing}>
                                 {chrForm.processing ? 'Menyimpan…' : 'Simpan pengaturan CHR'}
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="soft"
+                                disabled={chrForm.processing || testing}
+                                onClick={testConnection}
+                            >
+                                <PlugZap className={`h-4 w-4 ${testing ? 'animate-pulse' : ''}`} />
+                                {testing ? 'Menguji…' : 'Test koneksi'}
                             </Button>
                             {chrForm.isDirty && (
                                 <span className="text-xs text-amber">Ada perubahan belum disimpan</span>

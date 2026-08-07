@@ -31,6 +31,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::put('/settings/chr', [SettingsController::class, 'updateChr'])->name('settings.chr.update');
+    Route::post('/settings/chr/test', [SettingsController::class, 'testChr'])->name('settings.chr.test');
     Route::post('/settings/plans', [SettingsController::class, 'storePlan'])->name('settings.plans.store');
     Route::delete('/settings/plans/{plan}', [SettingsController::class, 'destroyPlan'])->name('settings.plans.destroy');
 
