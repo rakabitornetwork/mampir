@@ -1,11 +1,13 @@
 import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
 import {
+    AlertTriangle,
     CloudDownload,
     GitBranch,
     GitCommitHorizontal,
     RefreshCw,
     Search,
+    Trash2,
 } from 'lucide-react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Badge, Button, Panel, StatCard } from '@/Components/UI';
@@ -14,7 +16,8 @@ import { formatDate } from '@/lib/utils';
 export default function UpdateIndex({ git }) {
     const [checking, setChecking] = useState(false);
     const [pulling, setPulling] = useState(false);
-    const busy = checking || pulling;
+    const [resetting, setResetting] = useState(false);
+    const busy = checking || pulling || resetting;
 
     const checkUpdate = () => {
         router.post(
@@ -40,10 +43,30 @@ export default function UpdateIndex({ git }) {
         );
     };
 
+    const resetAndPull = () => {
+        const ok = confirm(
+            'Ini akan MEMBUANG semua perubahan lokal di server (git reset --hard + clean), lalu pull dari GitHub.\n\n' +
+                'File .env tidak ikut terhapus.\n\nLanjutkan?'
+        );
+        if (!ok) return;
+
+        router.post(
+            '/update/reset-pull',
+            {},
+            {
+                preserveScroll: true,
+                onStart: () => setResetting(true),
+                onFinish: () => setResetting(false),
+            }
+        );
+    };
+
+    const summary = git?.dirty_summary || {};
+
     return (
         <AdminLayout
             title="Update Aplikasi"
-            subtitle="Tarik perubahan terbaru dari GitHub ke server Laragon ini."
+            subtitle="Tarik perubahan terbaru dari GitHub ke server ini."
         >
             <Head title="Update Aplikasi" />
 
@@ -55,13 +78,43 @@ export default function UpdateIndex({ git }) {
 
             {git?.available && (
                 <>
+                    {git.dirty && (
+                        <div className="mb-6 rounded-2xl border border-amber/25 bg-amber/10 px-4 py-3 text-sm text-amber">
+                            <div className="flex items-start gap-2">
+                                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                                <div>
+                                    <strong className="text-ink">Working tree dirty</strong> memblokir pull
+                                    biasa. Di VPS ini hampir selalu karena file hasil{' '}
+                                    <code className="font-mono">composer</code>/<code className="font-mono">npm</code>{' '}
+                                    atau perbedaan permission — bukan error aplikasi.
+                                    {git.behind > 0 && (
+                                        <>
+                                            {' '}
+                                            Ada <strong>{git.behind}</strong> commit baru di GitHub yang menunggu.
+                                        </>
+                                    )}
+                                    {git.options?.allow_reset && (
+                                        <>
+                                            {' '}
+                                            Pakai <strong>Reset & Pull</strong> untuk membersihkan lalu update.
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                         <StatCard
                             label="Branch"
                             value={git.branch || '—'}
                             icon={GitBranch}
                             tone="ink"
-                            hint={git.upstream ? `track ${git.upstream}` : `target ${git.remote}/${git.configured_branch}`}
+                            hint={
+                                git.upstream
+                                    ? `track ${git.upstream}`
+                                    : `target ${git.remote}/${git.configured_branch}`
+                            }
                         />
                         <StatCard
                             label="Commit lokal"
@@ -74,13 +127,17 @@ export default function UpdateIndex({ git }) {
                             label="Tertinggal"
                             value={String(git.behind ?? 0)}
                             tone={git.behind > 0 ? 'amber' : 'sky'}
-                            hint={git.ahead > 0 ? `lokal +${git.ahead} commit` : 'vs remote terakhir diketahui'}
+                            hint={
+                                git.ahead > 0
+                                    ? `lokal +${git.ahead} commit`
+                                    : 'commit baru di GitHub belum di-pull'
+                            }
                         />
                         <StatCard
                             label="Working tree"
                             value={git.dirty ? `${git.dirty_count} berubah` : 'Bersih'}
                             tone={git.dirty ? 'rose' : 'teal'}
-                            hint={git.author ? `oleh ${git.author}` : undefined}
+                            hint={git.dirty ? 'blokir pull biasa' : 'siap pull'}
                         />
                     </div>
 
@@ -98,6 +155,12 @@ export default function UpdateIndex({ git }) {
                             <CloudDownload className={`h-4 w-4 ${pulling ? 'animate-bounce' : ''}`} />
                             {pulling ? 'Menarik update…' : 'Pull dari GitHub'}
                         </Button>
+                        {git.options?.allow_reset && git.dirty && (
+                            <Button variant="danger" disabled={busy} onClick={resetAndPull}>
+                                <Trash2 className={`h-4 w-4 ${resetting ? 'animate-pulse' : ''}`} />
+                                {resetting ? 'Reset & pull…' : 'Reset & Pull'}
+                            </Button>
+                        )}
                         <Button
                             variant="ghost"
                             disabled={busy}
@@ -178,15 +241,35 @@ export default function UpdateIndex({ git }) {
                                     </span>
                                 </li>
                             </ul>
-                            <p className="mt-4 text-xs text-ink-soft/70">
-                                Ubah lewat <code className="font-mono">.env</code>: UPDATE_RUN_COMPOSER,
-                                UPDATE_RUN_MIGRATE, UPDATE_RUN_OPTIMIZE_CLEAR, UPDATE_GIT_BRANCH.
-                            </p>
                         </Panel>
                     </div>
 
                     {git.dirty && (
                         <Panel className="mt-6" title="File lokal yang berubah">
+                            {(summary.vendor > 0 ||
+                                summary.node_modules > 0 ||
+                                summary.public_build > 0 ||
+                                summary.storage > 0) && (
+                                <div className="mb-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4 text-xs">
+                                    {[
+                                        ['vendor/', summary.vendor],
+                                        ['node_modules/', summary.node_modules],
+                                        ['public/build/', summary.public_build],
+                                        ['storage/', summary.storage],
+                                        ['lainnya', summary.other],
+                                    ]
+                                        .filter(([, n]) => n > 0)
+                                        .map(([label, n]) => (
+                                            <div
+                                                key={label}
+                                                className="rounded-lg border border-ink/8 bg-white/60 px-3 py-2"
+                                            >
+                                                <div className="text-ink-soft/70">{label}</div>
+                                                <div className="font-mono text-ink">{n} file</div>
+                                            </div>
+                                        ))}
+                                </div>
+                            )}
                             <div className="space-y-1 font-mono text-xs text-ink-soft">
                                 {git.dirty_files.map((line) => (
                                     <div key={line} className="rounded-lg bg-ink/[0.03] px-3 py-1.5">
@@ -202,26 +285,30 @@ export default function UpdateIndex({ git }) {
                         </Panel>
                     )}
 
-                    <Panel className="mt-6" title="Cara pakai">
-                        <ol className="list-decimal space-y-2 pl-5 text-sm text-ink-soft">
+                    <Panel className="mt-6" title="Arti status">
+                        <ul className="list-disc space-y-2 pl-5 text-sm text-ink-soft">
                             <li>
-                                Push perubahan dari mesin development ke{' '}
-                                <span className="font-mono text-ink">{git.remote_url || 'GitHub'}</span>.
+                                <strong className="text-ink">N di belakang</strong> — ada N commit di GitHub
+                                yang belum di-pull ke VPS. Itu info, bukan error.
                             </li>
                             <li>
-                                Di server ini, klik <strong className="text-ink">Cek update</strong> untuk
-                                melihat apakah remote punya commit baru.
+                                <strong className="text-ink">dirty</strong> — ada file lokal yang berbeda dari
+                                commit. Pull biasa ditolak agar tidak menimpa tanpa sengaja.
                             </li>
                             <li>
-                                Klik <strong className="text-ink">Pull dari GitHub</strong> — hanya
-                                fast-forward; working tree harus bersih.
+                                Di VPS, pakai <strong className="text-ink">Reset & Pull</strong>. Atau via SSH:
+                                <pre className="mt-2 overflow-x-auto rounded-xl bg-ink px-3 py-2 font-mono text-xs text-mist">
+                                    {`cd ${git.base_path || '/home/mampir/public_html'}
+git config core.filemode false
+git reset --hard HEAD
+git clean -fd
+git pull --ff-only origin main
+composer install --no-dev --optimize-autoloader
+php artisan migrate --force
+php artisan optimize:clear`}
+                                </pre>
                             </li>
-                            <li>
-                                Jika frontend berubah, jalankan{' '}
-                                <span className="font-mono text-ink">npm run build</span> di terminal
-                                (belum dijalankan otomatis dari halaman ini).
-                            </li>
-                        </ol>
+                        </ul>
                     </Panel>
                 </>
             )}

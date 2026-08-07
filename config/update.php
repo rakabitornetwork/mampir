@@ -27,4 +27,16 @@ return [
 
     'run_optimize_clear' => env('UPDATE_RUN_OPTIMIZE_CLEAR', true),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Izinkan reset working tree di halaman Update (untuk VPS/deploy)
+    |--------------------------------------------------------------------------
+    |
+    | Jika true, tombol "Reset & Pull" menjalankan git reset --hard + clean -fd
+    | lalu pull. File yang di-ignore (.env) tidak terhapus.
+    |
+    */
+
+    'allow_reset' => env('UPDATE_ALLOW_RESET', true),
+
 ];

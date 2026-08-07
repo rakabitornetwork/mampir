@@ -37,4 +37,5 @@ Route::middleware('auth')->group(function () {
     Route::get('/update', [UpdateController::class, 'index'])->name('update.index');
     Route::post('/update/check', [UpdateController::class, 'check'])->name('update.check');
     Route::post('/update/pull', [UpdateController::class, 'pull'])->name('update.pull');
+    Route::post('/update/reset-pull', [UpdateController::class, 'resetAndPull'])->name('update.reset-pull');
 });

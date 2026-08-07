@@ -52,6 +52,25 @@ class UpdateController extends Controller
             return back()->with('error', 'Pull update gagal: '.$e->getMessage());
         }
 
+        return $this->flashPullResult($result);
+    }
+
+    public function resetAndPull(GitUpdateService $git): RedirectResponse
+    {
+        try {
+            $result = $git->resetAndPull();
+        } catch (Throwable $e) {
+            return back()->with('error', 'Reset & Pull gagal: '.$e->getMessage());
+        }
+
+        return $this->flashPullResult($result);
+    }
+
+    /**
+     * @param  array{pulled?:bool, already_up_to_date?:bool, message?:string, steps?:list<array{name:string, ok:bool, output:string}>}  $result
+     */
+    protected function flashPullResult(array $result): RedirectResponse
+    {
         $failedSteps = collect($result['steps'] ?? [])
             ->filter(fn (array $step) => ! ($step['ok'] ?? false))
             ->pluck('name')
@@ -60,14 +79,14 @@ class UpdateController extends Controller
         if ($failedSteps !== []) {
             return back()->with(
                 'warning',
-                $result['message'].' Namun langkah gagal: '.implode(', ', $failedSteps).'.'
+                ($result['message'] ?? 'Selesai').' Namun langkah gagal: '.implode(', ', $failedSteps).'.'
             );
         }
 
         if ($result['already_up_to_date'] ?? false) {
-            return back()->with('success', $result['message']);
+            return back()->with('success', $result['message'] ?? 'Sudah up to date.');
         }
 
-        return back()->with('success', $result['message']);
+        return back()->with('success', $result['message'] ?? 'Update berhasil.');
     }
 }

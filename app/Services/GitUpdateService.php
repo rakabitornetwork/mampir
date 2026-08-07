@@ -29,6 +29,7 @@ class GitUpdateService
             $remoteUrl = $this->remoteUrl();
             $dirty = $this->dirtyFiles();
             $tracking = $this->trackingInfo($branch);
+            $dirtySummary = $this->summarizeDirty($dirty);
 
             return [
                 'available' => true,
@@ -46,6 +47,7 @@ class GitUpdateService
                 'dirty' => count($dirty) > 0,
                 'dirty_files' => array_slice($dirty, 0, 20),
                 'dirty_count' => count($dirty),
+                'dirty_summary' => $dirtySummary,
                 'ahead' => $tracking['ahead'],
                 'behind' => $tracking['behind'],
                 'upstream' => $tracking['upstream'],
@@ -53,6 +55,7 @@ class GitUpdateService
                     'run_composer' => (bool) config('update.run_composer'),
                     'run_migrate' => (bool) config('update.run_migrate'),
                     'run_optimize_clear' => (bool) config('update.run_optimize_clear'),
+                    'allow_reset' => (bool) config('update.allow_reset', true),
                 ],
             ];
         } catch (Throwable $e) {
@@ -61,6 +64,46 @@ class GitUpdateService
                 'error' => $e->getMessage(),
             ];
         }
+    }
+
+    /**
+     * Buang perubahan lokal (reset --hard + clean -fd), lalu pull.
+     * Cocok untuk VPS: .env tetap aman karena di-ignore.
+     *
+     * @return array{pulled:bool, already_up_to_date:bool, commit:?string, subject:?string, steps:list<array{name:string, ok:bool, output:string}>, message:string}
+     */
+    public function resetAndPull(): array
+    {
+        if (! config('update.allow_reset', true)) {
+            throw new RuntimeException('Reset working tree dinonaktifkan (UPDATE_ALLOW_RESET=false).');
+        }
+
+        $status = $this->status();
+        if (! ($status['available'] ?? false)) {
+            throw new RuntimeException($status['error'] ?? 'Git tidak tersedia.');
+        }
+
+        $steps = [];
+
+        // Abaikan perbedaan permission bit yang sering bikin "dirty" palsu di VPS.
+        $this->git(['config', 'core.filemode', 'false']);
+
+        $reset = $this->git(['reset', '--hard', 'HEAD']);
+        $steps[] = ['name' => 'git reset --hard HEAD', 'ok' => ! $reset['failed'], 'output' => $reset['output']];
+        if ($reset['failed']) {
+            throw new RuntimeException('Gagal reset: '.$reset['error']);
+        }
+
+        $clean = $this->git(['clean', '-fd']);
+        $steps[] = ['name' => 'git clean -fd', 'ok' => ! $clean['failed'], 'output' => $clean['output']];
+        if ($clean['failed']) {
+            throw new RuntimeException('Gagal clean: '.$clean['error']);
+        }
+
+        $result = $this->pull();
+        $result['steps'] = array_merge($steps, $result['steps'] ?? []);
+
+        return $result;
     }
 
     /**
@@ -114,7 +157,8 @@ class GitUpdateService
 
         if ($status['dirty']) {
             throw new RuntimeException(
-                'Working tree kotor ('.$status['dirty_count'].' file berubah). Commit/stash dulu sebelum pull.'
+                'Working tree kotor ('.$status['dirty_count'].' file berubah). '.
+                'Di VPS biasanya karena vendor/build/permission. Pakai tombol "Reset & Pull" atau jalankan: git reset --hard && git clean -fd'
             );
         }
 
@@ -256,6 +300,45 @@ class GitUpdateService
         }
 
         return array_values(array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', $porcelain) ?: [])));
+    }
+
+    /**
+     * @param  list<string>  $dirty
+     * @return array{vendor:int, node_modules:int, public_build:int, storage:int, other:int}
+     */
+    protected function summarizeDirty(array $dirty): array
+    {
+        $summary = [
+            'vendor' => 0,
+            'node_modules' => 0,
+            'public_build' => 0,
+            'storage' => 0,
+            'other' => 0,
+        ];
+
+        foreach ($dirty as $line) {
+            // Format porcelain: XY PATH atau XY ORIG -> PATH
+            $path = trim(preg_replace('/^.. /', '', $line) ?? $line);
+            if (str_contains($path, ' -> ')) {
+                $parts = explode(' -> ', $path);
+                $path = end($parts) ?: $path;
+            }
+            $path = str_replace('\\', '/', $path);
+
+            if (str_starts_with($path, 'vendor/') || $path === 'vendor') {
+                $summary['vendor']++;
+            } elseif (str_starts_with($path, 'node_modules/') || $path === 'node_modules') {
+                $summary['node_modules']++;
+            } elseif (str_starts_with($path, 'public/build/') || $path === 'public/build') {
+                $summary['public_build']++;
+            } elseif (str_starts_with($path, 'storage/') || $path === 'storage') {
+                $summary['storage']++;
+            } else {
+                $summary['other']++;
+            }
+        }
+
+        return $summary;
     }
 
     /**
