@@ -46,6 +46,7 @@ class DashboardController extends Controller
             ->get()
             ->map(fn (Tunnel $t) => [
                 'id' => $t->id,
+                'customer_id' => $t->customer_id,
                 'username' => $t->customer?->username,
                 'name' => $t->customer?->name,
                 'remote_address' => $t->remote_address,
@@ -75,6 +76,8 @@ class DashboardController extends Controller
             ->groupBy('service_key')
             ->pluck('total', 'service_key');
 
+        $chrConfigured = filled(config('chr.host')) && filled(config('chr.username'));
+
         return Inertia::render('Dashboard', [
             'stats' => $stats,
             'recentCustomers' => $recentCustomers,
@@ -92,6 +95,12 @@ class DashboardController extends Controller
                 'public_ip' => config('chr.public_ip'),
                 'host' => config('chr.host'),
                 'port' => (int) config('chr.port', 8728),
+            ],
+            'setup' => [
+                'chr_configured' => $chrConfigured,
+                'has_customers' => $stats['customers'] > 0,
+                'has_synced' => (bool) $lastSync,
+                'has_online' => $stats['online'] > 0,
             ],
         ]);
     }

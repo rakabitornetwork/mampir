@@ -20,58 +20,46 @@ export default function UpdateIndex({ git }) {
     const busy = checking || pulling || resetting;
 
     const checkUpdate = () => {
-        router.post(
-            '/update/check',
-            {},
-            {
-                preserveScroll: true,
-                onStart: () => setChecking(true),
-                onFinish: () => setChecking(false),
-            }
-        );
+        router.post('/update/check', {}, {
+            preserveScroll: true,
+            onStart: () => setChecking(true),
+            onFinish: () => setChecking(false),
+        });
     };
 
     const pullUpdate = () => {
-        router.post(
-            '/update/pull',
-            {},
-            {
-                preserveScroll: true,
-                onStart: () => setPulling(true),
-                onFinish: () => setPulling(false),
-            }
-        );
+        router.post('/update/pull', {}, {
+            preserveScroll: true,
+            onStart: () => setPulling(true),
+            onFinish: () => setPulling(false),
+        });
     };
 
     const resetAndPull = () => {
         const ok = confirm(
-            'Ini akan MEMBUANG semua perubahan lokal di server (git reset --hard + clean), lalu pull dari GitHub.\n\n' +
-                'File .env tidak ikut terhapus.\n\nLanjutkan?'
+            'Ini akan MEMBUANG semua perubahan lokal di server (git reset --hard + clean), lalu pull dari GitHub.\n\nFile .env tidak ikut terhapus.\n\nLanjutkan?'
         );
         if (!ok) return;
 
-        router.post(
-            '/update/reset-pull',
-            {},
-            {
-                preserveScroll: true,
-                onStart: () => setResetting(true),
-                onFinish: () => setResetting(false),
-            }
-        );
+        router.post('/update/reset-pull', {}, {
+            preserveScroll: true,
+            onStart: () => setResetting(true),
+            onFinish: () => setResetting(false),
+        });
     };
 
     const summary = git?.dirty_summary || {};
 
     return (
         <AdminLayout
-            title="Update Aplikasi"
-            subtitle="Tarik perubahan terbaru dari GitHub ke server ini."
+            title="Update aplikasi"
+            subtitle="Cek dulu, lalu pull. Reset hanya jika working tree kotor menghalangi update."
+            crumbs={[{ label: 'Update' }]}
         >
             <Head title="Update Aplikasi" />
 
             {!git?.available && (
-                <div className="mb-6 rounded-2xl border border-rose/20 bg-rose/10 px-4 py-3 text-sm text-rose">
+                <div className="mb-6 rounded-2xl border border-rose/20 bg-rose/8 px-4 py-3 text-sm text-rose">
                     Git tidak siap: {git?.error || 'unknown'}
                 </div>
             )}
@@ -79,30 +67,34 @@ export default function UpdateIndex({ git }) {
             {git?.available && (
                 <>
                     {git.dirty && (
-                        <div className="mb-6 rounded-2xl border border-amber/25 bg-amber/10 px-4 py-3 text-sm text-amber">
+                        <div className="mb-6 rounded-2xl border border-amber/25 bg-amber/8 px-4 py-3 text-sm text-amber">
                             <div className="flex items-start gap-2">
                                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                                 <div>
-                                    <strong className="text-ink">Working tree dirty</strong> memblokir pull
-                                    biasa. Di VPS ini hampir selalu karena file hasil{' '}
-                                    <code className="font-mono">composer</code>/<code className="font-mono">npm</code>{' '}
-                                    atau perbedaan permission — bukan error aplikasi.
+                                    <strong className="text-ink">Working tree berubah</strong> memblokir pull biasa.
+                                    Biasanya file hasil composer/npm atau permission — bukan error aplikasi.
                                     {git.behind > 0 && (
-                                        <>
-                                            {' '}
-                                            Ada <strong>{git.behind}</strong> commit baru di GitHub yang menunggu.
-                                        </>
+                                        <> Ada <strong>{git.behind}</strong> commit baru di GitHub.</>
                                     )}
-                                    {git.options?.allow_reset && (
-                                        <>
-                                            {' '}
-                                            Pakai <strong>Reset & Pull</strong> untuk membersihkan lalu update.
-                                        </>
-                                    )}
+                                    {git.options?.allow_reset && <> Pakai Reset & Pull untuk membersihkan lalu update.</>}
                                 </div>
                             </div>
                         </div>
                     )}
+
+                    <div className="mb-6 grid gap-3 sm:grid-cols-3">
+                        {[
+                            { n: '1', title: 'Cek update', text: 'Bandingkan commit lokal dengan GitHub.' },
+                            { n: '2', title: 'Pull', text: 'Ambil commit baru jika working tree bersih.' },
+                            { n: '3', title: 'Reset & pull', text: 'Hanya jika file lokal menghalangi.' },
+                        ].map((item) => (
+                            <div key={item.n} className="surface rounded-2xl px-4 py-3">
+                                <div className="font-mono text-[10px] text-gold">{item.n}</div>
+                                <div className="mt-1 text-sm font-semibold text-ink">{item.title}</div>
+                                <p className="mt-0.5 text-xs text-ink-soft/70">{item.text}</p>
+                            </div>
+                        ))}
+                    </div>
 
                     <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                         <StatCard
@@ -110,28 +102,14 @@ export default function UpdateIndex({ git }) {
                             value={git.branch || '—'}
                             icon={GitBranch}
                             tone="ink"
-                            hint={
-                                git.upstream
-                                    ? `track ${git.upstream}`
-                                    : `target ${git.remote}/${git.configured_branch}`
-                            }
+                            hint={git.upstream ? `track ${git.upstream}` : `target ${git.remote}/${git.configured_branch}`}
                         />
-                        <StatCard
-                            label="Commit lokal"
-                            value={git.commit || '—'}
-                            icon={GitCommitHorizontal}
-                            tone="teal"
-                            hint={git.subject}
-                        />
+                        <StatCard label="Commit lokal" value={git.commit || '—'} icon={GitCommitHorizontal} tone="teal" hint={git.subject} />
                         <StatCard
                             label="Tertinggal"
                             value={String(git.behind ?? 0)}
                             tone={git.behind > 0 ? 'amber' : 'sky'}
-                            hint={
-                                git.ahead > 0
-                                    ? `lokal +${git.ahead} commit`
-                                    : 'commit baru di GitHub belum di-pull'
-                            }
+                            hint={git.ahead > 0 ? `lokal +${git.ahead} commit` : 'commit baru di GitHub belum di-pull'}
                         />
                         <StatCard
                             label="Working tree"
@@ -161,11 +139,7 @@ export default function UpdateIndex({ git }) {
                                 {resetting ? 'Reset & pull…' : 'Reset & Pull'}
                             </Button>
                         )}
-                        <Button
-                            variant="ghost"
-                            disabled={busy}
-                            onClick={() => router.reload({ preserveScroll: true })}
-                        >
+                        <Button variant="ghost" disabled={busy} onClick={() => router.reload({ preserveScroll: true })}>
                             <RefreshCw className="h-4 w-4" />
                             Muat ulang status
                         </Button>
@@ -189,68 +163,34 @@ export default function UpdateIndex({ git }) {
                                     </div>
                                 ))}
                             </dl>
-
                             <div className="mt-5 flex flex-wrap gap-2">
                                 <Badge status={git.behind > 0 ? 'expired' : 'active'}>
                                     {git.behind > 0 ? `${git.behind} di belakang` : 'sinkron'}
                                 </Badge>
-                                {git.ahead > 0 && (
-                                    <Badge status="pending">{git.ahead} di depan</Badge>
-                                )}
-                                <Badge status={git.dirty ? 'expired' : 'active'}>
-                                    {git.dirty ? 'dirty' : 'clean'}
-                                </Badge>
+                                {git.ahead > 0 && <Badge status="pending">{git.ahead} di depan</Badge>}
+                                <Badge status={git.dirty ? 'dirty' : 'clean'}>{git.dirty ? 'berubah' : 'bersih'}</Badge>
                             </div>
                         </Panel>
 
-                        <Panel title="Langkah setelah pull">
+                        <Panel title="Yang dijalankan setelah pull">
                             <ul className="space-y-2 text-sm text-ink-soft">
-                                <li className="flex items-start gap-2">
-                                    <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-teal" />
-                                    <span>
-                                        <code className="font-mono text-ink">git fetch</code> +{' '}
-                                        <code className="font-mono text-ink">git pull --ff-only</code> dari{' '}
-                                        {git.remote}/{git.configured_branch}
-                                    </span>
-                                </li>
-                                <li className="flex items-start gap-2">
-                                    <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-teal" />
-                                    <span>
-                                        Composer install:{' '}
-                                        <strong className="text-ink">
-                                            {git.options?.run_composer ? 'aktif' : 'nonaktif'}
-                                        </strong>
-                                    </span>
-                                </li>
-                                <li className="flex items-start gap-2">
-                                    <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-teal" />
-                                    <span>
-                                        Migrasi database:{' '}
-                                        <strong className="text-ink">
-                                            {git.options?.run_migrate ? 'aktif' : 'nonaktif'}
-                                        </strong>
-                                    </span>
-                                </li>
-                                <li className="flex items-start gap-2">
-                                    <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-teal" />
-                                    <span>
-                                        Optimize clear:{' '}
-                                        <strong className="text-ink">
-                                            {git.options?.run_optimize_clear ? 'aktif' : 'nonaktif'}
-                                        </strong>
-                                    </span>
-                                </li>
-                                <li className="flex items-start gap-2">
-                                    <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-teal" />
-                                    <span>
+                                {[
+                                    <>git fetch + git pull --ff-only dari {git.remote}/{git.configured_branch}</>,
+                                    <>Composer install: <strong className="text-ink">{git.options?.run_composer ? 'aktif' : 'nonaktif'}</strong></>,
+                                    <>Migrasi database: <strong className="text-ink">{git.options?.run_migrate ? 'aktif' : 'nonaktif'}</strong></>,
+                                    <>Optimize clear: <strong className="text-ink">{git.options?.run_optimize_clear ? 'aktif' : 'nonaktif'}</strong></>,
+                                    <>
                                         npm run build di server:{' '}
                                         <strong className="text-ink">
-                                            {git.options?.run_npm_build
-                                                ? 'aktif'
-                                                : 'nonaktif — pakai public/build dari GitHub'}
+                                            {git.options?.run_npm_build ? 'aktif' : 'nonaktif — pakai public/build dari GitHub'}
                                         </strong>
-                                    </span>
-                                </li>
+                                    </>,
+                                ].map((item, i) => (
+                                    <li key={i} className="flex items-start gap-2">
+                                        <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-teal" />
+                                        <span>{item}</span>
+                                    </li>
+                                ))}
                             </ul>
                         </Panel>
                     </div>
@@ -261,7 +201,7 @@ export default function UpdateIndex({ git }) {
                                 summary.node_modules > 0 ||
                                 summary.public_build > 0 ||
                                 summary.storage > 0) && (
-                                <div className="mb-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4 text-xs">
+                                <div className="mb-4 grid gap-2 text-xs sm:grid-cols-2 lg:grid-cols-4">
                                     {[
                                         ['vendor/', summary.vendor],
                                         ['node_modules/', summary.node_modules],
@@ -271,10 +211,7 @@ export default function UpdateIndex({ git }) {
                                     ]
                                         .filter(([, n]) => n > 0)
                                         .map(([label, n]) => (
-                                            <div
-                                                key={label}
-                                                className="rounded-lg border border-ink/8 bg-white/60 px-3 py-2"
-                                            >
+                                            <div key={label} className="rounded-lg border border-ink/8 bg-white/60 px-3 py-2">
                                                 <div className="text-ink-soft/70">{label}</div>
                                                 <div className="font-mono text-ink">{n} file</div>
                                             </div>
@@ -299,17 +236,14 @@ export default function UpdateIndex({ git }) {
                     <Panel className="mt-6" title="Arti status">
                         <ul className="list-disc space-y-2 pl-5 text-sm text-ink-soft">
                             <li>
-                                <strong className="text-ink">N di belakang</strong> — ada N commit di GitHub
-                                yang belum di-pull ke VPS. Itu info, bukan error.
+                                <strong className="text-ink">N di belakang</strong> — ada N commit di GitHub yang belum di-pull. Itu info, bukan error.
                             </li>
                             <li>
-                                <strong className="text-ink">dirty</strong> — ada file lokal yang berbeda dari
-                                commit. Pull biasa ditolak agar tidak menimpa tanpa sengaja.
+                                <strong className="text-ink">Berubah / dirty</strong> — ada file lokal berbeda dari commit. Pull biasa ditolak agar tidak tertimpa.
                             </li>
                             <li>
                                 Frontend di-build di mesin development (`npm run build`), lalu folder{' '}
-                                <code className="font-mono text-ink">public/build</code> di-commit ke GitHub.
-                                VPS tidak perlu Node/npm.
+                                <code className="font-mono text-ink">public/build</code> di-commit. VPS tidak perlu Node/npm.
                             </li>
                             <li>
                                 Di VPS, pakai <strong className="text-ink">Reset & Pull</strong>. Atau via SSH:

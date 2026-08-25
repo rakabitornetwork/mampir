@@ -52,6 +52,7 @@ class HandleInertiaRequests extends Middleware
             'app' => [
                 'name' => config('app.name', 'Mampir'),
                 'public_ip' => config('chr.public_ip'),
+                'chr_configured' => filled(config('chr.host')) && filled(config('chr.username')),
             ],
         ];
     }
