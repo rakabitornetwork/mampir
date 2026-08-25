@@ -24,6 +24,15 @@
 @layer base {
     html {
         scroll-behavior: smooth;
+        height: 100%;
+        width: 100%;
+    }
+
+    body,
+    #app {
+        height: 100%;
+        width: 100%;
+        min-height: 100dvh;
     }
 
     body {
@@ -33,7 +42,6 @@
             radial-gradient(ellipse 90% 55% at 0% -10%, rgba(20, 184, 166, 0.1), transparent 55%),
             radial-gradient(ellipse 70% 45% at 100% 0%, rgba(176, 137, 72, 0.07), transparent 50%),
             linear-gradient(180deg, #f7f9fa 0%, #e8eef0 100%);
-        min-height: 100vh;
     }
 
     ::selection {

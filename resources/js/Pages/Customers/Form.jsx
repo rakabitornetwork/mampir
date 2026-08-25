@@ -238,7 +238,7 @@ export default function CustomerForm({ customer, plans, serviceTemplates, defaul
         >
             <Head title={isEdit ? 'Edit pelanggan' : 'Pelanggan baru'} />
 
-            <form onSubmit={submit} className="mx-auto max-w-3xl space-y-6">
+            <form onSubmit={submit} className="w-full space-y-6">
                 {!isEdit && <Stepper steps={steps} current={step} />}
 
                 {isEdit && identityFields}

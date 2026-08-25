@@ -16,6 +16,7 @@ createInertiaApp({
         return module.default ?? module;
     },
     setup({ el, App, props }) {
+        el.classList.add('h-full', 'w-full');
         createRoot(el).render(createElement(App, props));
     },
     progress: {

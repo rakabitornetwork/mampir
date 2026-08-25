@@ -185,90 +185,88 @@ export default function AdminLayout({ children, title, subtitle, crumbs = [] }) 
     );
 
     return (
-        <div className="min-h-screen">
+        <div className="flex h-dvh w-full overflow-hidden">
             {flashVisible && <FlashToasts flash={flash} onDismiss={() => setFlashVisible(false)} />}
 
-            <div className="mx-auto flex min-h-screen max-w-[1500px]">
-                <aside className="surface-ink sticky top-0 hidden h-screen w-[272px] shrink-0 flex-col px-4 py-6 text-mist lg:flex">
-                    {sidebar}
-                </aside>
+            <aside className="surface-ink hidden h-full w-[272px] shrink-0 flex-col px-4 py-6 text-mist lg:flex">
+                {sidebar}
+            </aside>
 
-                {open && (
-                    <div className="fixed inset-0 z-40 lg:hidden">
-                        <button type="button" className="absolute inset-0 bg-ink/50" onClick={() => setOpen(false)} />
-                        <aside className="surface-ink absolute inset-y-0 left-0 flex w-[min(100%,18rem)] flex-col px-4 py-6 text-mist shadow-2xl">
-                            <button
-                                type="button"
-                                onClick={() => setOpen(false)}
-                                className="mb-4 self-end rounded-lg p-1.5 text-mist/60 hover:bg-white/10"
-                            >
-                                <X className="h-5 w-5" />
-                            </button>
-                            {sidebar}
-                        </aside>
-                    </div>
-                )}
-
-                <div className="flex min-w-0 flex-1 flex-col">
-                    <header className="sticky top-0 z-20 border-b border-ink/8 bg-paper/80 px-4 py-4 backdrop-blur-md sm:px-8">
-                        <div className="flex items-start gap-3">
-                            <button
-                                type="button"
-                                className="mt-1 rounded-xl border border-ink/10 bg-white p-2 text-ink lg:hidden"
-                                onClick={() => setOpen(true)}
-                            >
-                                <Menu className="h-4 w-4" />
-                            </button>
-                            <div className="min-w-0 flex-1">
-                                {crumbs.length > 0 && (
-                                    <nav className="mb-1.5 flex flex-wrap items-center gap-1.5 text-xs text-ink-soft/60">
-                                        <Link href="/" className="hover:text-ink">
-                                            Dashboard
-                                        </Link>
-                                        {crumbs.map((crumb, idx) => (
-                                            <span key={`${crumb.label}-${idx}`} className="flex items-center gap-1.5">
-                                                <span>/</span>
-                                                {crumb.href ? (
-                                                    <Link href={crumb.href} className="hover:text-ink">
-                                                        {crumb.label}
-                                                    </Link>
-                                                ) : (
-                                                    <span className="text-ink/80">{crumb.label}</span>
-                                                )}
-                                            </span>
-                                        ))}
-                                    </nav>
-                                )}
-                                <div className="text-[11px] font-medium uppercase tracking-[0.2em] text-gold">
-                                    Teslatech · Perwiracloud
-                                </div>
-                                <h1 className="mt-1 text-2xl font-semibold tracking-tight text-ink">{title}</h1>
-                                {subtitle && <p className="mt-1 max-w-2xl text-sm text-ink-soft/80">{subtitle}</p>}
-                            </div>
-                            <div className="hidden items-center gap-2 rounded-full border border-ink/10 bg-white/80 py-1.5 pl-1.5 pr-4 sm:flex">
-                                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ink text-[11px] font-semibold text-white">
-                                    {initials(auth?.user?.name || auth?.user?.email)}
-                                </span>
-                                <span className="max-w-[180px] truncate text-sm text-ink-soft">{auth?.user?.email}</span>
-                            </div>
-                        </div>
-
-                        {!chrReady && !onSettings && (
-                            <Link
-                                href="/settings"
-                                className="mt-4 flex items-start gap-3 rounded-2xl border border-amber/20 bg-amber/8 px-4 py-3 text-sm text-ink"
-                            >
-                                <span className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-amber" />
-                                <span>
-                                    <strong className="font-semibold">Langkah 1 — hubungkan CHR.</strong>{' '}
-                                    Isi host API, username, dan password di Pengaturan supaya pelanggan bisa di-sync dan di-push.
-                                </span>
-                            </Link>
-                        )}
-                    </header>
-
-                    <main className="flex-1 px-4 py-6 sm:px-8 sm:py-8">{children}</main>
+            {open && (
+                <div className="fixed inset-0 z-40 lg:hidden">
+                    <button type="button" className="absolute inset-0 bg-ink/50" onClick={() => setOpen(false)} />
+                    <aside className="surface-ink absolute inset-y-0 left-0 flex h-full w-[min(100%,18rem)] flex-col px-4 py-6 text-mist shadow-2xl">
+                        <button
+                            type="button"
+                            onClick={() => setOpen(false)}
+                            className="mb-4 self-end rounded-lg p-1.5 text-mist/60 hover:bg-white/10"
+                        >
+                            <X className="h-5 w-5" />
+                        </button>
+                        {sidebar}
+                    </aside>
                 </div>
+            )}
+
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+                <header className="z-20 shrink-0 border-b border-ink/8 bg-paper/80 px-4 py-4 backdrop-blur-md sm:px-8">
+                    <div className="flex items-start gap-3">
+                        <button
+                            type="button"
+                            className="mt-1 rounded-xl border border-ink/10 bg-white p-2 text-ink lg:hidden"
+                            onClick={() => setOpen(true)}
+                        >
+                            <Menu className="h-4 w-4" />
+                        </button>
+                        <div className="min-w-0 flex-1">
+                            {crumbs.length > 0 && (
+                                <nav className="mb-1.5 flex flex-wrap items-center gap-1.5 text-xs text-ink-soft/60">
+                                    <Link href="/" className="hover:text-ink">
+                                        Dashboard
+                                    </Link>
+                                    {crumbs.map((crumb, idx) => (
+                                        <span key={`${crumb.label}-${idx}`} className="flex items-center gap-1.5">
+                                            <span>/</span>
+                                            {crumb.href ? (
+                                                <Link href={crumb.href} className="hover:text-ink">
+                                                    {crumb.label}
+                                                </Link>
+                                            ) : (
+                                                <span className="text-ink/80">{crumb.label}</span>
+                                            )}
+                                        </span>
+                                    ))}
+                                </nav>
+                            )}
+                            <div className="text-[11px] font-medium uppercase tracking-[0.2em] text-gold">
+                                Teslatech · Perwiracloud
+                            </div>
+                            <h1 className="mt-1 text-2xl font-semibold tracking-tight text-ink">{title}</h1>
+                            {subtitle && <p className="mt-1 text-sm text-ink-soft/80">{subtitle}</p>}
+                        </div>
+                        <div className="hidden items-center gap-2 rounded-full border border-ink/10 bg-white/80 py-1.5 pl-1.5 pr-4 sm:flex">
+                            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ink text-[11px] font-semibold text-white">
+                                {initials(auth?.user?.name || auth?.user?.email)}
+                            </span>
+                            <span className="max-w-[180px] truncate text-sm text-ink-soft">{auth?.user?.email}</span>
+                        </div>
+                    </div>
+
+                    {!chrReady && !onSettings && (
+                        <Link
+                            href="/settings"
+                            className="mt-4 flex items-start gap-3 rounded-2xl border border-amber/20 bg-amber/8 px-4 py-3 text-sm text-ink"
+                        >
+                            <span className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-amber" />
+                            <span>
+                                <strong className="font-semibold">Langkah 1 — hubungkan CHR.</strong>{' '}
+                                Isi host API, username, dan password di Pengaturan supaya pelanggan bisa di-sync dan di-push.
+                            </span>
+                        </Link>
+                    )}
+                </header>
+
+                <main className="min-h-0 w-full flex-1 overflow-y-auto px-4 py-6 sm:px-8 sm:py-8">{children}</main>
             </div>
         </div>
     );

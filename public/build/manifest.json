@@ -1,6 +1,6 @@
 {
-  "_AdminLayout-kZLNqlno.js": {
-    "file": "assets/AdminLayout-kZLNqlno.js",
+  "_AdminLayout-c0IMStkm.js": {
+    "file": "assets/AdminLayout-c0IMStkm.js",
     "name": "AdminLayout",
     "imports": [
       "_rolldown-runtime-CbXtAM7H.js",
@@ -38,7 +38,7 @@
     ]
   },
   "resources/css/app.css": {
-    "file": "assets/app-Bkz5aVsY.css",
+    "file": "assets/app-CBuQh8E2.css",
     "name": "app",
     "names": [
       "app.css"
@@ -47,7 +47,7 @@
     "isEntry": true
   },
   "resources/js/Pages/Auth/Login.jsx": {
-    "file": "assets/Login-BBch2vhy.js",
+    "file": "assets/Login-CoqREtI0.js",
     "name": "Login",
     "src": "resources/js/Pages/Auth/Login.jsx",
     "isDynamicEntry": true,
@@ -58,7 +58,7 @@
     ]
   },
   "resources/js/Pages/Customers/Form.jsx": {
-    "file": "assets/Form-CBwn39Ma.js",
+    "file": "assets/Form-DlyGvn3d.js",
     "name": "Form",
     "src": "resources/js/Pages/Customers/Form.jsx",
     "isDynamicEntry": true,
@@ -67,11 +67,11 @@
       "_vendor-Uex2zJYq.js",
       "_icons-BCJGwzte.js",
       "_UI-BJDU6_fW.js",
-      "_AdminLayout-kZLNqlno.js"
+      "_AdminLayout-c0IMStkm.js"
     ]
   },
   "resources/js/Pages/Customers/Index.jsx": {
-    "file": "assets/Index-BRy-UQlm.js",
+    "file": "assets/Index-DEK23Rgw.js",
     "name": "Index",
     "src": "resources/js/Pages/Customers/Index.jsx",
     "isDynamicEntry": true,
@@ -80,11 +80,11 @@
       "_vendor-Uex2zJYq.js",
       "_icons-BCJGwzte.js",
       "_UI-BJDU6_fW.js",
-      "_AdminLayout-kZLNqlno.js"
+      "_AdminLayout-c0IMStkm.js"
     ]
   },
   "resources/js/Pages/Customers/Show.jsx": {
-    "file": "assets/Show-DF2B4qXp.js",
+    "file": "assets/Show-J1Dzyu11.js",
     "name": "Show",
     "src": "resources/js/Pages/Customers/Show.jsx",
     "isDynamicEntry": true,
@@ -93,11 +93,11 @@
       "_vendor-Uex2zJYq.js",
       "_icons-BCJGwzte.js",
       "_UI-BJDU6_fW.js",
-      "_AdminLayout-kZLNqlno.js"
+      "_AdminLayout-c0IMStkm.js"
     ]
   },
   "resources/js/Pages/Dashboard.jsx": {
-    "file": "assets/Dashboard-7yuTdUod.js",
+    "file": "assets/Dashboard-DxDQ1ut-.js",
     "name": "Dashboard",
     "src": "resources/js/Pages/Dashboard.jsx",
     "isDynamicEntry": true,
@@ -105,11 +105,11 @@
       "_vendor-Uex2zJYq.js",
       "_icons-BCJGwzte.js",
       "_UI-BJDU6_fW.js",
-      "_AdminLayout-kZLNqlno.js"
+      "_AdminLayout-c0IMStkm.js"
     ]
   },
   "resources/js/Pages/Scripts/Index.jsx": {
-    "file": "assets/Index-hMmcnbaR.js",
+    "file": "assets/Index-noqn2YaT.js",
     "name": "Index",
     "src": "resources/js/Pages/Scripts/Index.jsx",
     "isDynamicEntry": true,
@@ -118,11 +118,11 @@
       "_vendor-Uex2zJYq.js",
       "_icons-BCJGwzte.js",
       "_UI-BJDU6_fW.js",
-      "_AdminLayout-kZLNqlno.js"
+      "_AdminLayout-c0IMStkm.js"
     ]
   },
   "resources/js/Pages/Settings/Index.jsx": {
-    "file": "assets/Index-UT9poKis.js",
+    "file": "assets/Index-GiV4sQny.js",
     "name": "Index",
     "src": "resources/js/Pages/Settings/Index.jsx",
     "isDynamicEntry": true,
@@ -131,11 +131,11 @@
       "_vendor-Uex2zJYq.js",
       "_icons-BCJGwzte.js",
       "_UI-BJDU6_fW.js",
-      "_AdminLayout-kZLNqlno.js"
+      "_AdminLayout-c0IMStkm.js"
     ]
   },
   "resources/js/Pages/Sync/Index.jsx": {
-    "file": "assets/Index-BlU42-63.js",
+    "file": "assets/Index-C1dALd_v.js",
     "name": "Index",
     "src": "resources/js/Pages/Sync/Index.jsx",
     "isDynamicEntry": true,
@@ -143,11 +143,11 @@
       "_vendor-Uex2zJYq.js",
       "_icons-BCJGwzte.js",
       "_UI-BJDU6_fW.js",
-      "_AdminLayout-kZLNqlno.js"
+      "_AdminLayout-c0IMStkm.js"
     ]
   },
   "resources/js/Pages/Update/Index.jsx": {
-    "file": "assets/Index-CCacNT0x.js",
+    "file": "assets/Index-BLoMIDM7.js",
     "name": "Index",
     "src": "resources/js/Pages/Update/Index.jsx",
     "isDynamicEntry": true,
@@ -156,11 +156,11 @@
       "_vendor-Uex2zJYq.js",
       "_icons-BCJGwzte.js",
       "_UI-BJDU6_fW.js",
-      "_AdminLayout-kZLNqlno.js"
+      "_AdminLayout-c0IMStkm.js"
     ]
   },
   "resources/js/app.jsx": {
-    "file": "assets/app-DKA4sLaH.js",
+    "file": "assets/app-BHwxbtEF.js",
     "name": "app",
     "src": "resources/js/app.jsx",
     "isEntry": true,
@@ -181,7 +181,7 @@
       "resources/js/Pages/Update/Index.jsx"
     ],
     "css": [
-      "assets/app-Bkz5aVsY.css"
+      "assets/app-CBuQh8E2.css"
     ]
   }
 }
